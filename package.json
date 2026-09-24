@@ -1,0 +1,14 @@
+{
+  "name": "coastal-karnataka-guide",
+  "version": "0.1.0",
+  "description": "An intelligent travel companion for Coastal Karnataka, starting with Mangalore.",
+  "private": true,
+  "scripts": {
+    "validate": "ts-node tests/validate.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
