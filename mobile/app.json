@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "Coastal Karnataka Guide",
+    "slug": "coastal-karnataka-guide",
+    "version": "0.2.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1A5C99"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.coastalkarnataka.guide"
+    },
+    "android": {
+      "package": "com.coastalkarnataka.guide",
+      "adaptiveIcon": {
+        "backgroundColor": "#1A5C99",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

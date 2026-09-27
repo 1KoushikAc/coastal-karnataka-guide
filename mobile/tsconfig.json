@@ -1,0 +1,18 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "paths": {
+      "@data/*": ["../src/data/*"],
+      "@shared-types/*": ["../src/types/*"]
+    },
+    "types": ["jest"]
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "../src/**/*.ts"
+  ]
+}
