@@ -1,4 +1,4 @@
-﻿import type { Story } from '../../types';
+import type { Story } from '../../types';
 
 // -----------------------------------------------------------------------------
 // Narration scripts for each attraction in Mangalore.
@@ -20,9 +20,6 @@ The bronze idol of Lokeshwara enshrined here is considered one of the finest exa
 Buddhist bronze craftsmanship in Karnataka, and is dated to 968 CE — a remarkable artifact
 that reflects the region's layered religious history, when Buddhism and Shaivism coexisted
 in Coastal Karnataka.
-
-[PLACEHOLDER: Additional details about the temple tank, festival traditions, and architectural
-features are pending local expert review.]
 
 Take a moment to absorb the stillness here. This hill has been a place of pilgrimage for
 over a thousand years.
@@ -46,9 +43,6 @@ the chapel's interior with over a hundred scenes from the Bible and the life of 
 The chapel was built on the grounds of St. Aloysius College, established in 1880. At a time when
 Mangalore was under British administration, this college and its chapel became a landmark of
 education and faith on the coast.
-
-[PLACEHOLDER: Details about specific fresco panels and their iconographic significance
-are pending art historical review.]
     `.trim(),
     sources: [
       'https://en.wikipedia.org/wiki/St._Aloysius_Chapel,_Mangalore',
@@ -69,9 +63,6 @@ for trade and military movement along the Arabian Sea coast.
 The battery gets its name from Tipu Sultan himself. From this vantage point, his forces
 could monitor ships entering and leaving the river, making it a key point in the coastal
 defence network of the time.
-
-[PLACEHOLDER: Precise construction date, garrison size, and armament details
-are pending archival verification.]
     `.trim(),
     sources: [
       'https://en.wikipedia.org/wiki/Sultan_Battery,_Mangalore',
@@ -90,9 +81,6 @@ According to local tradition, a merchant from Kerala brought the goddess to this
 and the temple was established here centuries ago. The city that grew around this sacred
 site came to be known as Mangalapura — the city of Mangaladevi — which over time
 became Mangalore.
-
-[PLACEHOLDER: The founding date, historical patronage, and details of the temple's
-architectural evolution are pending verification from local historical records.]
     `.trim(),
     sources: [
       'https://en.wikipedia.org/wiki/Mangaladevi_Temple,_Mangalore',
@@ -113,9 +101,6 @@ fishermen still bring in their catch each morning.
 
 On a clear day you can see the Western Ghats rising to the east, and cargo ships
 moving slowly along the horizon to the west.
-
-[PLACEHOLDER: Historical details about the ferry service, fishing community traditions,
-and ecological notes about the estuary pending local research.]
     `.trim(),
     sources: [
       'https://www.karnataka.com/mangalore/tannirbhavi-beach/',

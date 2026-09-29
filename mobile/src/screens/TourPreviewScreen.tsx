@@ -21,6 +21,7 @@ import { SectionHeader } from '../components/SectionHeader';
 import { PlaceImage } from '../components/PlaceImage';
 import { EmptyState } from '../components/EmptyState';
 import { formatDuration } from '../utils/format';
+import { resolveImageSource } from '../utils/images';
 import type { RootStackParamList } from '../navigation/types';
 import { tours, attractions } from '@data/index';
 
@@ -58,7 +59,7 @@ const statStyles = StyleSheet.create({
 
 // ── Screen ─────────────────────────────────────────────────────────────────
 
-export function TourPreviewScreen({ route }: Props): React.JSX.Element {
+export function TourPreviewScreen({ route, navigation }: Props): React.JSX.Element {
   const { tourId } = route.params;
 
   const tour = useMemo(() => tours.find((t) => t.id === tourId), [tourId]);
@@ -80,11 +81,7 @@ export function TourPreviewScreen({ route }: Props): React.JSX.Element {
   }
 
   const handleStartTour = () => {
-    Alert.alert(
-      'Coming Soon',
-      'The guided tour experience with location-based stories will be available in a future update.',
-      [{ text: 'Got it' }],
-    );
+    navigation.navigate('ActiveTour', { tourId: tour.id });
   };
 
   return (
@@ -93,6 +90,7 @@ export function TourPreviewScreen({ route }: Props): React.JSX.Element {
 
         {/* ── Hero image ──────────────────────────────────────── */}
         <PlaceImage
+          source={resolveImageSource(tour.heroImage?.assetKey)}
           category={tour.category}
           label={tour.name}
           height={220}

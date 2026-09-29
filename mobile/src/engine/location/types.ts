@@ -12,7 +12,8 @@
 //   DeviceLocationProvider     — wraps expo-location for real GPS (later milestone)
 //
 // Design principles:
-//   - Synchronous getCurrentLocation() for simplicity at this stage.
+//   - Synchronous getCurrentLocation() for reading the latest known position.
+//   - Observable subscribe() for listening to location updates (push model).
 //   - start()/stop() lifecycle mirrors real GPS sensor control.
 //   - reset() enables deterministic test setup.
 //   - Simulation-specific methods (setLocation, moveToward…) live ONLY in
@@ -20,6 +21,12 @@
 // =============================================================================
 
 import type { GeoPoint } from '../distance';
+
+/** Listener callback invoked when the provider updates its location. */
+export type LocationListener = (location: GeoPoint) => void;
+
+/** Function returned by subscribe() to cancel the subscription. */
+export type Unsubscribe = () => void;
 
 export interface LocationProvider {
   /**
@@ -51,4 +58,11 @@ export interface LocationProvider {
    * Does not stop the provider if it is running.
    */
   reset(startCoords: GeoPoint): void;
+
+  /**
+   * Subscribes a listener to receive location updates as they occur.
+   * @param listener Callback receiving the updated coordinates.
+   * @returns An Unsubscribe function to cleanly remove the listener.
+   */
+  subscribe(listener: LocationListener): Unsubscribe;
 }

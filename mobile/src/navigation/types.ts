@@ -13,4 +13,9 @@ export type RootStackParamList = {
     /** The ID of the tour to preview — resolved against M1 data */
     tourId: string;
   };
+  ActiveTour: {
+    /** The ID of the tour being walked — resolved against M1 data */
+    tourId: string;
+  };
+  DevLocationDiagnostic: undefined;
 };

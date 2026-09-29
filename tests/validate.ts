@@ -1,4 +1,4 @@
-﻿// =============================================================================
+// =============================================================================
 // M1 Validation Script
 // Checks referential integrity of the seed data without any test framework.
 // Run with: npx ts-node tests/validate.ts
@@ -89,6 +89,18 @@ function validate(): ValidationResult {
         );
       }
     }
+
+    // Tour hero image check
+    if (tour.heroImage && (!tour.heroImage.assetKey || typeof tour.heroImage.assetKey !== 'string')) {
+      errors.push(`Tour "${tour.id}" has invalid heroImage assetKey`);
+    }
+  }
+
+  // --- 4. All attractions must have a valid image reference ---
+  for (const attr of attractions) {
+    if (!attr.image || typeof attr.image.assetKey !== 'string' || attr.image.assetKey.trim() === '') {
+      errors.push(`Attraction "${attr.id}" is missing a valid image reference`);
+    }
   }
 
   return { passed: errors.length === 0, errors };
@@ -98,11 +110,11 @@ function validate(): ValidationResult {
 const result = validate();
 
 console.log('\n=== Coastal Karnataka Guide — M1 Data Validation ===\n');
-console.log(`Cities   : ${cities.map((c) => c.name).join(', ')}`);
-console.log(`Attractions: ${attractions.length}`);
-console.log(`Stories  : ${stories.length}`);
-console.log(`Tours    : ${tours.length}`);
-console.log(`Stops    : ${tours.reduce((n, t) => n + t.stops.length, 0)}`);
+console.log(`Cities     : ${cities.map((c) => c.name).join(', ')}`);
+console.log(`Attractions: ${attractions.length} (with image: ${attractions.filter((a) => !!a.image).length})`);
+console.log(`Stories    : ${stories.length}`);
+console.log(`Tours      : ${tours.length} (with heroImage: ${tours.filter((t) => !!t.heroImage).length})`);
+console.log(`Stops      : ${tours.reduce((n, t) => n + t.stops.length, 0)}`);
 console.log('');
 
 if (result.passed) {

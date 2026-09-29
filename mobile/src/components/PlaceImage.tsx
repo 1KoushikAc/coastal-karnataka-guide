@@ -1,17 +1,15 @@
 // src/components/PlaceImage.tsx
-// Placeholder image component for tour/attraction photography.
+// =============================================================================
+// PlaceImage — Tour & Attraction Photography Display
+// =============================================================================
+// Displays hero photography or temporary placeholder visuals.
 //
 // Architecture:
-//   - When `source` is provided, renders a real Image (react-native Image).
-//   - When `source` is absent, renders a styled placeholder View.
-//
-// The placeholder uses a category-keyed color from the design system,
-// so each theme has a visually distinct but harmonious appearance.
-// Drop in real photography simply by passing a `source` prop:
-//
-//   <PlaceImage source={require('../assets/tours/heritage-walk.jpg')} ... />
-//
-// No downloads, no external URLs — only local assets when added.
+//   - When `source` is provided, renders the image with an overlay label.
+//   - When `source` is absent, falls back to a styled category-colored placeholder.
+//   - When `isPlaceholder` is true, displays a subtle, clearly identified
+//     "PLACEHOLDER" badge to avoid misrepresenting temporary assets as real photography.
+// =============================================================================
 
 import React from 'react';
 import {
@@ -22,17 +20,19 @@ import {
   type ImageSourcePropType,
   type ViewStyle,
 } from 'react-native';
-import { CategoryColors, Colors, Typography } from '../theme';
+import { CategoryColors, Colors, Typography, Radius, Spacing } from '../theme';
 
 interface Props {
-  /** Real image source. If omitted, a styled placeholder is shown. */
+  /** Real image source or bundled asset. If omitted, a styled placeholder is shown. */
   source?: ImageSourcePropType;
-  /** Category key — determines placeholder color. */
+  /** Category key — determines fallback placeholder color. */
   category?: string;
   /** Overlay label shown at the bottom of the image/placeholder. */
   label?: string;
   height?: number;
   style?: ViewStyle;
+  /** True when the image is a temporary placeholder rather than verified photography. */
+  isPlaceholder?: boolean;
 }
 
 export function PlaceImage({
@@ -41,6 +41,7 @@ export function PlaceImage({
   label,
   height = 220,
   style,
+  isPlaceholder = false,
 }: Props): React.JSX.Element {
   const placeholderColor = CategoryColors[category] ?? CategoryColors['default'];
 
@@ -53,6 +54,14 @@ export function PlaceImage({
           resizeMode="cover"
           accessibilityLabel={label ?? 'Tour place image'}
         />
+
+        {/* Clear, subtle badge indicating temporary placeholder asset */}
+        {isPlaceholder && (
+          <View style={styles.placeholderBadge}>
+            <Text style={styles.placeholderBadgeText}>PLACEHOLDER</Text>
+          </View>
+        )}
+
         {label ? (
           <View style={styles.labelOverlay}>
             <Text style={styles.labelText} numberOfLines={2}>
@@ -64,14 +73,19 @@ export function PlaceImage({
     );
   }
 
-  // Placeholder — styled View, no external images.
+  // Fallback — styled View with subtle inner texture, no external assets required.
   return (
     <View
       style={[styles.container, { height, backgroundColor: placeholderColor }, style]}
       accessibilityLabel={label ? `Photo placeholder for ${label}` : 'Photo placeholder'}
     >
-      {/* Subtle inner texture: a slightly lighter tint block */}
       <View style={styles.placeholderInner} />
+
+      {isPlaceholder && (
+        <View style={styles.placeholderBadge}>
+          <Text style={styles.placeholderBadgeText}>PLACEHOLDER</Text>
+        </View>
+      )}
 
       {label ? (
         <View style={styles.labelOverlay}>
@@ -94,6 +108,22 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
+  },
+  placeholderBadge: {
+    position: 'absolute',
+    top: Spacing.sm,
+    right: Spacing.sm,
+    backgroundColor: 'rgba(26, 31, 44, 0.72)',
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: Radius.xs,
+    zIndex: 2,
+  },
+  placeholderBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.white,
+    letterSpacing: 0.8,
   },
   placeholderInner: {
     position: 'absolute',

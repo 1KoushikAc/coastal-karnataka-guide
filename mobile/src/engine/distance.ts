@@ -6,9 +6,16 @@
 // lat/lng points. No external dependencies. Fully unit-testable.
 // =============================================================================
 
-export interface GeoPoint {
-  latitude: number;
-  longitude: number;
+import type { Coordinates } from '@shared-types/index';
+
+/**
+ * GeoPoint represents a geographic coordinate with optional GPS accuracy
+ * and timestamp metadata. Extends M1's Coordinates interface for 100%
+ * backward compatibility.
+ */
+export interface GeoPoint extends Coordinates {
+  readonly accuracy?: number | null;
+  readonly timestamp?: number | null;
 }
 
 const EARTH_RADIUS_METERS = 6_371_000;

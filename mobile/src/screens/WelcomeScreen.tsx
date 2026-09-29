@@ -10,6 +10,7 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
+  TouchableOpacity,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
@@ -51,10 +52,21 @@ export function WelcomeScreen({ navigation }: Props): React.JSX.Element {
           accessibilityLabel="Begin exploring tours in Mangalore"
         />
         <Text style={styles.hint}>No sign-in required · Works offline</Text>
+        {__DEV__ && (
+          <TouchableOpacity
+            style={styles.devDiagnosticLink}
+            onPress={() => navigation.navigate('DevLocationDiagnostic')}
+            accessibilityRole="button"
+            accessibilityLabel="Open Developer GPS Diagnostic"
+          >
+            <Text style={styles.devDiagnosticText}>🛠 GPS Diagnostic (M6.1 Dev)</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   root: {
@@ -109,4 +121,22 @@ const styles = StyleSheet.create({
     color: '#7A9EC0',
     textAlign: 'center',
   },
+  devDiagnosticLink: {
+    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.sm,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 6,
+    alignSelf: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderStyle: 'dashed',
+    marginTop: Spacing.xs,
+  },
+  devDiagnosticText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.white,
+    letterSpacing: 0.3,
+  },
 });
+

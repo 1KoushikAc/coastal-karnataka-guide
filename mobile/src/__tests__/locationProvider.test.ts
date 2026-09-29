@@ -6,7 +6,7 @@
 // =============================================================================
 
 import { SimulatedLocationProvider } from '../engine/location/SimulatedLocationProvider';
-import type { LocationProvider } from '../engine/location/types';
+import type { LocationProvider, LocationListener, Unsubscribe } from '../engine/location/types';
 import { computeDistanceMeters, type GeoPoint } from '../engine/distance';
 
 // ---------------------------------------------------------------------------
@@ -233,6 +233,69 @@ describe('SimulatedLocationProvider — start/stop lifecycle', () => {
     expect(() => provider.getCurrentLocation()).not.toThrow();
     provider.stop();
     expect(() => provider.getCurrentLocation()).not.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Subscription & Listener Lifecycle (M5.3)
+// ---------------------------------------------------------------------------
+
+describe('SimulatedLocationProvider — subscription and listeners', () => {
+  test('subscribe adds a listener and increments listenerCount', () => {
+    const provider = new SimulatedLocationProvider(ORIGIN);
+    expect(provider.listenerCount).toBe(0);
+
+    const listener = jest.fn();
+    const unsubscribe = provider.subscribe(listener);
+
+    expect(provider.listenerCount).toBe(1);
+    unsubscribe();
+    expect(provider.listenerCount).toBe(0);
+  });
+
+  test('setLocation notifies subscribers with new location', () => {
+    const provider = new SimulatedLocationProvider(ORIGIN);
+    const received: GeoPoint[] = [];
+    provider.subscribe((loc) => received.push(loc));
+
+    provider.setLocation(KADRI_TEMPLE);
+    expect(received.length).toBe(1);
+    expect(received[0].latitude).toBeCloseTo(KADRI_TEMPLE.latitude, 6);
+  });
+
+  test('unsubscribed listener does not receive subsequent updates', () => {
+    const provider = new SimulatedLocationProvider(ORIGIN);
+    const received: GeoPoint[] = [];
+    const unsubscribe = provider.subscribe((loc) => received.push(loc));
+
+    provider.setLocation(KADRI_TEMPLE);
+    expect(received.length).toBe(1);
+
+    unsubscribe();
+    provider.setLocation(ST_ALOYSIUS);
+    // Should still only have 1 received update
+    expect(received.length).toBe(1);
+  });
+
+  test('multiple listeners receive location updates independently', () => {
+    const provider = new SimulatedLocationProvider(ORIGIN);
+    const l1 = jest.fn();
+    const l2 = jest.fn();
+
+    const unsub1 = provider.subscribe(l1);
+    const unsub2 = provider.subscribe(l2);
+
+    provider.moveTo(ST_ALOYSIUS);
+    expect(l1).toHaveBeenCalledTimes(1);
+    expect(l2).toHaveBeenCalledTimes(1);
+
+    unsub1();
+    provider.moveTo(KADRI_TEMPLE);
+    expect(l1).toHaveBeenCalledTimes(1); // not called again
+    expect(l2).toHaveBeenCalledTimes(2); // still received
+
+    unsub2();
+    expect(provider.listenerCount).toBe(0);
   });
 });
 

@@ -10,6 +10,8 @@ import { WelcomeScreen } from '../screens/WelcomeScreen';
 import { ChooseInterestScreen } from '../screens/ChooseInterestScreen';
 import { ChooseTourScreen } from '../screens/ChooseTourScreen';
 import { TourPreviewScreen } from '../screens/TourPreviewScreen';
+import { ActiveTourScreen } from '../screens/ActiveTourScreen';
+import { DevLocationDiagnosticScreen } from '../screens/DevLocationDiagnosticScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -45,6 +47,20 @@ export function RootNavigator(): React.JSX.Element {
         component={TourPreviewScreen}
         options={{ title: 'Tour Details' }}
       />
+      <Stack.Screen
+        name="ActiveTour"
+        component={ActiveTourScreen}
+        options={{ title: 'Active Tour' }}
+      />
+      <Stack.Screen
+        name="DevLocationDiagnostic"
+        component={DevLocationDiagnosticScreen}
+        options={{
+          title: 'GPS Diagnostic (Dev)',
+          headerStyle: { backgroundColor: '#4A3B25' },
+        }}
+      />
     </Stack.Navigator>
   );
 }
+

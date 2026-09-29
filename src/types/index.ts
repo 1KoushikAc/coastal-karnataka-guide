@@ -1,22 +1,24 @@
-﻿// =============================================================================
-// Coastal Karnataka Guide — Core TypeScript Types
+// src/types/index.ts
 // =============================================================================
-// These interfaces define the data model for the entire application.
-// Mangalore is the first city, but the model supports any number of cities.
+// Coastal Karnataka Guide — Core Data Model Types
+// =============================================================================
+// Strict, minimal TypeScript types for the application data layer.
+// Designed to be serialisable (JSON-safe) and portable to any platform.
 // =============================================================================
 
 // ---------------------------------------------------------------------------
-// Primitives
+// Geographic Coordinates
+// Standard WGS-84 decimal degrees.
 // ---------------------------------------------------------------------------
 
 export interface Coordinates {
-  latitude: number;
-  longitude: number;
+  latitude: number;   // e.g. 12.8876
+  longitude: number;  // e.g. 74.8429
 }
 
 // ---------------------------------------------------------------------------
-// Category
-// A union of known interest tags. Extend as new categories are needed.
+// Category / Interest
+// A curated list of themes a traveller might be interested in.
 // ---------------------------------------------------------------------------
 
 export type Category =
@@ -27,6 +29,21 @@ export type Category =
   | 'architecture'
   | 'coastal'
   | 'culture';
+
+// ---------------------------------------------------------------------------
+// ImageReference
+// Standard reference for attraction photos and tour hero assets.
+// Points to an abstract assetKey resolved by the platform asset registry.
+// ---------------------------------------------------------------------------
+
+export interface ImageReference {
+  /** Identifier or relative path key for the asset (e.g. "placeholder-kadri-manjunatha-temple") */
+  assetKey: string;
+  /** Accessible description / caption */
+  altText: string;
+  /** True when using an identified temporary placeholder rather than verified production photo */
+  isPlaceholder?: boolean;
+}
 
 // ---------------------------------------------------------------------------
 // City
@@ -55,6 +72,7 @@ export interface Attraction {
   shortDescription: string;          // 1–2 sentences shown on the map card
   estimatedVisitDurationMinutes: number;
   sources: string[];                 // URLs or book references for verification
+  image: ImageReference;             // Photo or placeholder image reference
 }
 
 // ---------------------------------------------------------------------------
@@ -96,4 +114,5 @@ export interface Tour {
   category: Category;
   estimatedDurationMinutes: number;
   stops: TourStop[];
+  heroImage?: ImageReference;        // Hero image for tour preview and cards
 }

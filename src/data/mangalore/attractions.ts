@@ -1,4 +1,4 @@
-﻿import type { Attraction } from '../../types';
+import type { Attraction } from '../../types';
 
 // -----------------------------------------------------------------------------
 // IMPORTANT: Only include verified or clearly marked placeholder facts.
@@ -19,6 +19,11 @@ export const mangaloreAttractions: Attraction[] = [
     sources: [
       'https://en.wikipedia.org/wiki/Kadri_Manjunatha_Temple',
     ],
+    image: {
+      assetKey: 'placeholder-kadri-manjunatha-temple',
+      altText: 'Kadri Manjunatha Temple heritage grounds and sacred hill tank',
+      isPlaceholder: true,
+    },
   },
   {
     id: 'st-aloysius-chapel',
@@ -32,6 +37,11 @@ export const mangaloreAttractions: Attraction[] = [
     sources: [
       'https://en.wikipedia.org/wiki/St._Aloysius_Chapel,_Mangalore',
     ],
+    image: {
+      assetKey: 'placeholder-st-aloysius-chapel',
+      altText: 'St. Aloysius Chapel interior Italian Renaissance frescoes and nave',
+      isPlaceholder: true,
+    },
   },
   {
     id: 'sultan-battery',
@@ -45,6 +55,11 @@ export const mangaloreAttractions: Attraction[] = [
     sources: [
       'https://en.wikipedia.org/wiki/Sultan_Battery,_Mangalore',
     ],
+    image: {
+      assetKey: 'placeholder-sultan-battery',
+      altText: 'Sultan Battery black-stone watchtower overlooking Gurupura river',
+      isPlaceholder: true,
+    },
   },
   {
     id: 'mangaladevi-temple',
@@ -53,11 +68,16 @@ export const mangaloreAttractions: Attraction[] = [
     coordinates: { latitude: 12.8594, longitude: 74.8423 },
     categories: ['religious', 'history'],
     shortDescription:
-      'The temple from which Mangalore derives its name, dedicated to Goddess Mangaladevi. [PLACEHOLDER: detailed history pending verification]',
+      'The temple from which Mangalore derives its name, dedicated to Goddess Mangaladevi.',
     estimatedVisitDurationMinutes: 30,
     sources: [
       'https://en.wikipedia.org/wiki/Mangaladevi_Temple,_Mangalore',
     ],
+    image: {
+      assetKey: 'placeholder-mangaladevi-temple',
+      altText: 'Mangaladevi Temple traditional Kerala-style wooden architecture and sanctum',
+      isPlaceholder: true,
+    },
   },
   {
     id: 'tannirbhavi-beach',
@@ -71,5 +91,10 @@ export const mangaloreAttractions: Attraction[] = [
     sources: [
       'https://www.karnataka.com/mangalore/tannirbhavi-beach/',
     ],
+    image: {
+      assetKey: 'placeholder-tannirbhavi-beach',
+      altText: 'Tannirbhavi Beach golden sands and Arabian Sea tree line',
+      isPlaceholder: true,
+    },
   },
 ];

@@ -1,4 +1,4 @@
-﻿import type { Tour } from '../../types';
+import type { Tour } from '../../types';
 
 export const mangaloreTours: Tour[] = [
   {
@@ -11,6 +11,11 @@ export const mangaloreTours: Tour[] = [
       'this route reveals the layered history of one of India\'s oldest port cities.',
     category: 'history',
     estimatedDurationMinutes: 180,
+    heroImage: {
+      assetKey: 'placeholder-mangalore-heritage-walk',
+      altText: 'Mangalore Heritage Walk scenic coastal landmark trail',
+      isPlaceholder: true,
+    },
     stops: [
       {
         id: 'stop-kadri-temple',
