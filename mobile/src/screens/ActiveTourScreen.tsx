@@ -1,6 +1,6 @@
 // src/screens/ActiveTourScreen.tsx
 // =============================================================================
-// ActiveTourScreen — Guided Active Tour Experience
+// ActiveTourScreen — Guided Active Tour Experience (M6.4)
 // =============================================================================
 // The primary walking tour screen. Displays the current stop, distance/proximity,
 // narration story upon arrival, and tour progress.
@@ -11,6 +11,16 @@
 //   - Progress and distance are clear but secondary.
 //   - No chatbot aesthetics, no generic AI styling.
 //   - Dedicated, clearly labeled DEV SIMULATOR section for development testing.
+//
+// M6.4 — Stop Arrival Experience:
+//   - On arrival: a clear, single arrival card names the attraction and offers
+//     "Explore This Place" (story available) or "Learn About This Place" (fallback).
+//   - Tapping the arrival CTA transitions to the content view (story / fallback).
+//   - After viewing content, "Continue to Next Stop" becomes the primary action.
+//   - The arrival card is shown only once per stop; repeated GPS updates while
+//     inside the trigger radius do NOT re-trigger the arrival animation or state.
+//   - Leaving and returning to the same stop does not corrupt tour state
+//     (engine's isCurrentStopReached is idempotent).
 // =============================================================================
 
 import React from 'react';
@@ -48,6 +58,8 @@ export function ActiveTourScreen({ route, navigation }: Props): React.JSX.Elemen
     isComplete,
     stopNumber,
     totalStops,
+    hasViewedArrivalContent,
+    markArrivalContentViewed,
     moveToNextStop,
     resetTour,
     devControls,
@@ -125,6 +137,17 @@ export function ActiveTourScreen({ route, navigation }: Props): React.JSX.Elemen
 
   const isFinalStop = stopNumber === totalStops;
 
+  // ---------------------------------------------------------------------------
+  // Derived display flags for the arrival experience (M6.4)
+  // ---------------------------------------------------------------------------
+  // Phase 1 — Arrival notification: traveler just arrived, hasn't yet tapped CTA
+  const showArrivalCard = isReached && !hasViewedArrivalContent;
+  // Phase 2 — Content view: traveler tapped CTA, or no story (skip phase 1 CTA)
+  const showContentView = isReached && hasViewedArrivalContent;
+
+  // Label for the arrival CTA button
+  const arrivalCtaLabel = currentStory ? 'Explore This Place' : 'Learn About This Place';
+
   return (
     <SafeAreaView style={styles.root}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
@@ -179,13 +202,47 @@ export function ActiveTourScreen({ route, navigation }: Props): React.JSX.Elemen
                 )}
               </View>
             </View>
+          ) : showArrivalCard ? (
+            // ── M6.4 Phase 1: Arrival Notification Card ──────────────────
+            // Shown once when the traveler first enters the trigger radius.
+            // Clearly identifies the attraction and invites content engagement.
+            // Does NOT auto-advance the tour.
+            <View style={styles.arrivalCard} accessibilityLiveRegion="polite">
+              <View style={styles.arrivalCardHeader}>
+                <Text style={styles.arrivalCheckmark}>✓</Text>
+                <View style={styles.arrivalCardTitles}>
+                  <Text style={styles.arrivalOverline}>YOU HAVE ARRIVED</Text>
+                  <Text style={styles.arrivalAttractionName} numberOfLines={2}>
+                    {currentAttraction?.name ?? currentStop?.attractionId ?? 'This Stop'}
+                  </Text>
+                </View>
+              </View>
+              {currentAttraction?.shortDescription ? (
+                <Text style={styles.arrivalDescription}>
+                  {currentAttraction.shortDescription}
+                </Text>
+              ) : null}
+              <PrimaryButton
+                label={arrivalCtaLabel}
+                onPress={markArrivalContentViewed}
+                style={styles.arrivalCtaBtn}
+                accessibilityLabel={
+                  currentStory
+                    ? `Explore ${currentAttraction?.name ?? 'this place'} — read the story`
+                    : `Learn about ${currentAttraction?.name ?? 'this place'}`
+                }
+              />
+            </View>
           ) : isReached ? (
+            // ── Compact arrived indicator shown during Phase 2 (content visible) ──
             <View style={styles.arrivedBanner}>
               <Text style={styles.arrivedIcon}>✓</Text>
               <View style={styles.arrivedTextCol}>
                 <Text style={styles.arrivedTitle}>You have arrived</Text>
                 <Text style={styles.arrivedSubtitle}>
-                  The story of this place is waiting below.
+                  {currentStory
+                    ? 'The story of this place is below.'
+                    : 'Information about this place is below.'}
                 </Text>
               </View>
             </View>
@@ -230,13 +287,30 @@ export function ActiveTourScreen({ route, navigation }: Props): React.JSX.Elemen
           )}
 
           {/* ── Story / Place Content ────────────────────────────── */}
-          {isReached && currentStory ? (
+          {/* M6.4: Story and content are shown in Phase 2 (after arrival CTA is tapped).
+               In Phase 1 (arrival card shown), content is hidden to keep the screen focused. */}
+          {showContentView && currentStory ? (
             <View style={styles.storySection}>
               <Text style={styles.storyEyebrow}>THE STORY</Text>
               <Text style={styles.storyTitle}>{currentStory.title}</Text>
               <Text style={styles.storyBody}>{currentStory.narrationText}</Text>
             </View>
-          ) : (
+          ) : showContentView && !currentStory ? (
+            // M6.4 fallback: No story available — show attraction info gracefully
+            <View style={styles.aboutSection}>
+              <Text style={styles.sectionLabel}>ABOUT THIS PLACE</Text>
+              <Text style={styles.aboutText}>
+                {currentAttraction?.shortDescription ??
+                  'Walk toward the landmark to hear its history and narration.'}
+              </Text>
+              {currentAttraction && (
+                <Text style={styles.visitDurationHint}>
+                  Estimated visit: {currentAttraction.estimatedVisitDurationMinutes} min
+                </Text>
+              )}
+            </View>
+          ) : !isReached ? (
+            // En-route: show attraction teaser
             <View style={styles.aboutSection}>
               <Text style={styles.sectionLabel}>ABOUT THIS PLACE</Text>
               <Text style={styles.aboutText}>
@@ -247,10 +321,13 @@ export function ActiveTourScreen({ route, navigation }: Props): React.JSX.Elemen
                 As you get closer, the local story of this landmark will unfold.
               </Text>
             </View>
-          )}
+          ) : null}
 
-          {/* ── Primary Action (When Arrived) ─────────────────────── */}
-          {isReached && (
+          {/* ── Primary Action (When Arrived & Content Viewed) ─────────────────── */}
+          {/* M6.4: "Continue to Next Stop" only appears after the traveler has
+               engaged with the arrival content. During Phase 1 (arrival card shown),
+               the only CTA is the arrival card's "Explore This Place" button. */}
+          {showContentView && (
             <View style={styles.actionSection}>
               <PrimaryButton
                 label={isFinalStop ? 'Complete Tour ✓' : 'Continue to Next Stop →'}
@@ -288,6 +365,9 @@ export function ActiveTourScreen({ route, navigation }: Props): React.JSX.Elemen
               <Text style={styles.devStatus}>
                 Status: {isReached ? 'Inside trigger radius (arrived)' : 'En route (outside radius)'} ·{' '}
                 {distanceMeters !== null ? `${Math.round(distanceMeters)}m to target` : ''}
+              </Text>
+              <Text style={styles.devStatus}>
+                Arrival phase: {showArrivalCard ? 'Phase 1 (arrival card)' : showContentView ? 'Phase 2 (content)' : 'En route'}
               </Text>
 
               {isSimulated ? (
@@ -420,6 +500,84 @@ const styles = StyleSheet.create({
     borderColor: '#8A2518',
   },
 
+  // ── M6.4 Arrival Card (Phase 1) ───────────────────────────────────────
+  // Shown once when the traveler first arrives at a stop.
+  // Clear, calm, names the attraction, offers a single primary action.
+  arrivalCard: {
+    backgroundColor: Colors.accentLight,
+    padding: Spacing.lg,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.accent,
+    marginBottom: Spacing.lg,
+    ...Shadow.sm,
+  },
+  arrivalCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.sm,
+  },
+  arrivalCheckmark: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: Colors.accent,
+    marginRight: Spacing.sm,
+    lineHeight: 36,
+  },
+  arrivalCardTitles: {
+    flex: 1,
+  },
+  arrivalOverline: {
+    ...Typography.overline,
+    color: Colors.accent,
+    marginBottom: 2,
+  },
+  arrivalAttractionName: {
+    ...Typography.subheading,
+    color: Colors.textPrimary,
+    fontWeight: '700',
+  },
+  arrivalDescription: {
+    ...Typography.bodySmall,
+    color: Colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: Spacing.md,
+  },
+  arrivalCtaBtn: {
+    marginTop: Spacing.xs,
+  },
+
+  // ── Compact arrived indicator (Phase 2) ──────────────────────────────
+  arrivedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.accentLight,
+    padding: Spacing.md,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.accent,
+    marginBottom: Spacing.lg,
+  },
+  arrivedIcon: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: Colors.accent,
+    marginRight: Spacing.sm,
+  },
+  arrivedTextCol: {
+    flex: 1,
+  },
+  arrivedTitle: {
+    ...Typography.subheading,
+    color: Colors.accent,
+    fontWeight: '700',
+  },
+  arrivedSubtitle: {
+    ...Typography.caption,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+
   // ── Unavailable Status Banner ─────────────────────────────────────────
   unavailableBanner: {
     flexDirection: 'row',
@@ -490,36 +648,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 
-  arrivedBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.accentLight,
-    padding: Spacing.md,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.accent,
-    marginBottom: Spacing.lg,
-  },
-  arrivedIcon: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: Colors.accent,
-    marginRight: Spacing.sm,
-  },
-  arrivedTextCol: {
-    flex: 1,
-  },
-  arrivedTitle: {
-    ...Typography.subheading,
-    color: Colors.accent,
-    fontWeight: '700',
-  },
-  arrivedSubtitle: {
-    ...Typography.caption,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
-
   // ── Story & Place Sections ──────────────────────────────────────────
   aboutSection: {
     backgroundColor: Colors.surface,
@@ -544,6 +672,11 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: Spacing.md,
     fontStyle: 'italic',
+  },
+  visitDurationHint: {
+    ...Typography.caption,
+    color: Colors.textTertiary,
+    marginTop: Spacing.sm,
   },
 
   storySection: {

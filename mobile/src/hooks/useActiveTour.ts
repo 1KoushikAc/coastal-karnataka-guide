@@ -1,6 +1,6 @@
 // src/hooks/useActiveTour.ts
 // =============================================================================
-// useActiveTour — React Hook for Active Tour Progression (M6.2)
+// useActiveTour — React Hook for Active Tour Progression (M6.2 / M6.4)
 // =============================================================================
 // Connects TourSession (M5.1), LocationProvider (M5.2 / M6.1), and
 // TourLocationController (M5.3) to the React UI lifecycle.
@@ -13,6 +13,14 @@
 //   - Exposes traveler actions: moveToNextStop, resetTour, retryPermission.
 //   - Exposes dev controls: mode toggle, stepTowardCurrentStop, arriveAtCurrentStop.
 //   - Cleanly stops and destroys subscriptions on component unmount (no leaks).
+//
+// M6.4 — Stop Arrival Experience:
+//   - Tracks hasViewedArrivalContent per stop (UI-layer state only).
+//   - Resets this flag on each stop advance and tour reset.
+//   - Exposes markArrivalContentViewed() so the screen can record that the
+//     traveler has engaged with the arrival content at this stop.
+//   - The engine's arrival idempotency (isCurrentStopReached) is preserved
+//     and is independent of this UI-layer tracking.
 // =============================================================================
 
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
@@ -98,6 +106,20 @@ export interface ActiveTourHookResult {
   /** Progress fraction between 0.0 and 1.0. */
   progress: number;
 
+  /**
+   * True if the traveler has tapped "Explore This Place" / "Listen to the Story"
+   * at the current stop. Resets to false when moving to a new stop or resetting.
+   * This is UI-layer state only; does not affect the engine's arrival idempotency.
+   */
+  hasViewedArrivalContent: boolean;
+
+  /**
+   * Call when the traveler taps the arrival CTA ("Explore This Place" etc.)
+   * to record that they have engaged with this stop's content.
+   * After this, the primary CTA transitions to "Continue to Next Stop".
+   */
+  markArrivalContentViewed: () => void;
+
   /** Traveler advances to the next stop. */
   moveToNextStop: () => void;
 
@@ -146,6 +168,12 @@ export function useActiveTour(
   const [locationStatus, setLocationStatus] = useState<DeviceLocationStatus | 'simulated'>(
     mode === 'device' ? 'starting' : 'simulated',
   );
+
+  // M6.4 — Arrival content tracking (UI-layer only; independent of engine arrival state).
+  // True once the traveler has tapped the arrival CTA at the current stop.
+  // Resets to false whenever the stop index changes or the tour resets.
+  const [hasViewedArrivalContent, setHasViewedArrivalContent] = useState<boolean>(false);
+
 
   // Initialize controller and provider for the tour and mode
   useEffect(() => {
@@ -235,6 +263,8 @@ export function useActiveTour(
     const updated = controllerRef.current.moveToNextStop();
     setSession(updated);
     setDistanceMeters(controllerRef.current.getDistanceToCurrentStop());
+    // M6.4: Reset arrival-content flag so the next stop gets a fresh arrival experience
+    setHasViewedArrivalContent(false);
   }, []);
 
   const resetTour = useCallback(() => {
@@ -249,6 +279,8 @@ export function useActiveTour(
       setTravelerLocation(providerRef.current.getCurrentLocation());
     }
     setDistanceMeters(controllerRef.current.getDistanceToCurrentStop());
+    // M6.4: Reset arrival-content flag so stop 1 gets a fresh arrival experience
+    setHasViewedArrivalContent(false);
   }, []);
 
   const retryPermission = useCallback(() => {
@@ -297,6 +329,11 @@ export function useActiveTour(
     travelerLocation?.accuracy != null && travelerLocation.accuracy > 50;
   const isSimulated = mode === 'simulated';
 
+  // M6.4: Records that the traveler has engaged with arrival content at this stop.
+  const markArrivalContentViewed = useCallback(() => {
+    setHasViewedArrivalContent(true);
+  }, []);
+
   return {
     tour,
     session,
@@ -317,6 +354,8 @@ export function useActiveTour(
     stopNumber,
     totalStops,
     progress,
+    hasViewedArrivalContent,
+    markArrivalContentViewed,
     moveToNextStop,
     resetTour,
     retryPermission,
