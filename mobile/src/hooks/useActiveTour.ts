@@ -29,6 +29,7 @@ import { tours, attractions, stories } from '@data/index';
 import type { TourSession } from '../engine/types';
 import { progressFraction } from '../engine/types';
 import { TourLocationController } from '../engine/TourLocationController';
+import type { ProximityState } from '../engine/TourLocationController';
 import type { LocationProvider } from '../engine/location/types';
 import { SimulatedLocationProvider } from '../engine/location/SimulatedLocationProvider';
 import { DeviceLocationProvider, type DeviceLocationStatus } from '../engine/location/DeviceLocationProvider';
@@ -93,6 +94,15 @@ export interface ActiveTourHookResult {
 
   /** True once traveler is within triggerRadiusMeters of the current stop. */
   isReached: boolean;
+
+  /**
+   * Three-bucket proximity state for the current stop (M6.3).
+   * Derived purely from distance vs. stop's triggerRadiusMeters.
+   *   'arrived' — traveler is within triggerRadiusMeters (stop reached).
+   *   'nearby'  — within 3× triggerRadiusMeters, not yet inside trigger radius.
+   *   'far'     — beyond nearby ring, or no valid location.
+   */
+  proximityState: ProximityState;
 
   /** True once all stops have been completed. */
   isComplete: boolean;
@@ -329,6 +339,13 @@ export function useActiveTour(
     travelerLocation?.accuracy != null && travelerLocation.accuracy > 50;
   const isSimulated = mode === 'simulated';
 
+  // M6.3: Proximity state — derived from controller on every render.
+  // No extra useState; the controller computes it from session + lastLocation.
+  // Re-evaluates whenever session or distanceMeters changes (both are tracked).
+  const proximityState: ProximityState = controllerRef.current
+    ? controllerRef.current.getProximityState()
+    : 'far';
+
   // M6.4: Records that the traveler has engaged with arrival content at this stop.
   const markArrivalContentViewed = useCallback(() => {
     setHasViewedArrivalContent(true);
@@ -350,6 +367,7 @@ export function useActiveTour(
     isLocationUnavailable,
     isLowAccuracy,
     isReached,
+    proximityState,
     isComplete,
     stopNumber,
     totalStops,

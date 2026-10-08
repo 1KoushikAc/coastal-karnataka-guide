@@ -21,6 +21,12 @@
 //       - Resets without duplicate listeners.
 //   - Keeps all proximity & distance logic completely outside UI components.
 //
+// Proximity State (M6.3):
+//   getProximityState() returns a purely derived value — no new state fields:
+//     'arrived' — stop has been reached (isCurrentStopReached = true)
+//     'nearby'  — within NEARBY_RADIUS_FACTOR × triggerRadiusMeters
+//     'far'     — beyond the nearby ring, or no location / no stop
+//
 // What this class does NOT do:
 //   - It does NOT auto-advance to the next stop.
 //     Advancing is an explicit user action: call moveToNextStop().
@@ -53,6 +59,31 @@ export interface StopCoordinateLookup {
 
 /** Default maximum GPS accuracy (meters) accepted to trigger stop arrival. */
 export const DEFAULT_MAX_ACCURACY_METERS = 50;
+
+// ---------------------------------------------------------------------------
+// ProximityState — M6.3
+// A purely derived proximity bucket for UX feedback. No new state fields.
+// ---------------------------------------------------------------------------
+
+/**
+ * Proximity of the traveler to the current stop.
+ *
+ *   'arrived' — traveler is within the stop's triggerRadiusMeters
+ *               (session.isCurrentStopReached = true).
+ *   'nearby'  — traveler is within NEARBY_RADIUS_FACTOR × triggerRadiusMeters
+ *               but NOT yet inside the trigger radius.
+ *   'far'     — traveler is beyond the nearby ring,
+ *               or no valid location / stop is available.
+ */
+export type ProximityState = 'far' | 'nearby' | 'arrived';
+
+/**
+ * Multiplier applied to a stop's triggerRadiusMeters to define the "nearby" ring.
+ * Example: triggerRadiusMeters=50 → nearby begins at 150 m.
+ * Chosen to give the traveler a heads-up while remaining deterministic
+ * (derived entirely from each stop's own data — no hardcoded distances).
+ */
+export const NEARBY_RADIUS_FACTOR = 3;
 
 export interface TourLocationControllerOptions {
   /** Maximum allowable GPS accuracy radius in meters before a reading is considered unreliable for arrival. Default: 50. */
@@ -271,6 +302,32 @@ export class TourLocationController {
       return null;
     }
     return computeDistanceMeters(currentPos, stopCoords);
+  }
+
+  /**
+   * Returns the traveler's proximity state relative to the current stop.
+   * This is a purely derived value — computed on every call from existing state.
+   * No new state fields are introduced.
+   *
+   * Returns:
+   *   'arrived' — stop has been marked reached (engine idempotency still applies).
+   *   'nearby'  — within NEARBY_RADIUS_FACTOR × triggerRadiusMeters.
+   *   'far'     — beyond the nearby ring, or no valid location / no active stop.
+   */
+  getProximityState(): ProximityState {
+    // If the engine has already confirmed arrival, report arrived regardless of
+    // current GPS position (traveler may have walked away).
+    if (this._session.isCurrentStopReached) return 'arrived';
+
+    const stop = getCurrentStop(this._session);
+    if (!stop) return 'far'; // tour complete or not started
+
+    const distance = this.getDistanceToCurrentStop();
+    if (distance === null) return 'far'; // no valid location
+
+    const nearbyRadiusMeters = stop.triggerRadiusMeters * NEARBY_RADIUS_FACTOR;
+    if (distance <= nearbyRadiusMeters) return 'nearby';
+    return 'far';
   }
 
   // ---------------------------------------------------------------------------
