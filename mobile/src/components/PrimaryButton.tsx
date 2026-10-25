@@ -12,7 +12,7 @@ import {
   ActivityIndicator,
   type ViewStyle,
 } from 'react-native';
-import { Colors, Radius, Spacing, Typography } from '../theme';
+import { Colors, Radius, Spacing, Typography, Shadow } from '../theme';
 
 export type ButtonVariant = 'default' | 'inverted';
 
@@ -72,6 +72,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 52,
+    ...Shadow.sm,
   },
   default: {
     backgroundColor: Colors.primary,

@@ -1,7 +1,10 @@
 // src/screens/TourPreviewScreen.tsx
-// Full tour detail before the traveler begins.
-// Uses PlaceImage, SectionHeader, CategoryPill, PrimaryButton.
-// No GPS, maps, or audio — navigation logic unchanged.
+// =============================================================================
+// TourPreviewScreen — Itinerary & Experience Overview
+// =============================================================================
+// Displays complete tour overview before the traveler begins walking.
+// Place-focused typography, rich landmark stop cards, and prominent Start CTA.
+// =============================================================================
 
 import React, { useMemo } from 'react';
 import {
@@ -10,28 +13,28 @@ import {
   StyleSheet,
   ScrollView,
   SafeAreaView,
-  Alert,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import { Colors, Spacing, Typography, Radius } from '../theme';
+import { Colors, Spacing, Typography, Radius, Shadow } from '../theme';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { CategoryPill } from '../components/CategoryPill';
-import { SectionHeader } from '../components/SectionHeader';
 import { PlaceImage } from '../components/PlaceImage';
 import { EmptyState } from '../components/EmptyState';
 import { formatDuration } from '../utils/format';
 import { resolveImageSource } from '../utils/images';
 import type { RootStackParamList } from '../navigation/types';
 import { tours, attractions } from '@data/index';
+import { getTourById } from '../engine/planner/registry';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TourPreview'>;
 
-// ── Stat block (local — specific to this screen) ──────────────────────────
+// ── Stat block ──────────────────────────────────────────────────────────────
 
-function StatBlock({ value, label }: { value: string; label: string }): React.JSX.Element {
+function StatBlock({ value, label, icon }: { value: string; label: string; icon: string }): React.JSX.Element {
   return (
     <View style={statStyles.block}>
+      <Text style={statStyles.icon}>{icon}</Text>
       <Text style={statStyles.value}>{value}</Text>
       <Text style={statStyles.label}>{label}</Text>
     </View>
@@ -43,39 +46,58 @@ const statStyles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     paddingVertical: Spacing.sm,
+    gap: 2,
+  },
+  icon: {
+    fontSize: 16,
+    marginBottom: 2,
   },
   value: {
     ...Typography.subheading,
-    color: Colors.primary,
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.textPrimary,
   },
   label: {
     ...Typography.caption,
+    fontSize: 11,
     color: Colors.textTertiary,
-    marginTop: 2,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
+    fontWeight: '600',
   },
 });
 
-// ── Screen ─────────────────────────────────────────────────────────────────
+// ── Screen Component ────────────────────────────────────────────────────────
 
 export function TourPreviewScreen({ route, navigation }: Props): React.JSX.Element {
   const { tourId } = route.params;
 
-  const tour = useMemo(() => tours.find((t) => t.id === tourId), [tourId]);
+  const tour = useMemo(
+    () => getTourById(tourId) ?? tours.find((t) => t.id === tourId) ?? null,
+    [tourId],
+  );
 
-  const stopNames = useMemo(() => {
+  const stopsData = useMemo(() => {
     if (!tour) return [];
     return tour.stops.map((stop) => {
       const attr = attractions.find((a) => a.id === stop.attractionId);
-      return attr?.name ?? stop.attractionId;
+      return {
+        stop,
+        name: attr?.name ?? stop.attractionId,
+        shortDesc: attr?.shortDescription ?? '',
+        duration: attr?.estimatedVisitDurationMinutes ?? 30,
+        category: attr?.categories[0] ?? tour.category,
+        image: attr?.image,
+        admission: attr?.admission,
+      };
     });
   }, [tour]);
 
   if (!tour) {
     return (
       <SafeAreaView style={styles.root}>
-        <EmptyState icon="❓" title="Tour not found" body="This tour could not be loaded." />
+        <EmptyState icon="❓" title="Tour Not Found" body="This tour itinerary could not be loaded." />
       </SafeAreaView>
     );
   }
@@ -86,95 +108,138 @@ export function TourPreviewScreen({ route, navigation }: Props): React.JSX.Eleme
 
   return (
     <SafeAreaView style={styles.root}>
-      <ScrollView showsVerticalScrollIndicator={false} stickyHeaderIndices={[]}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
 
-        {/* ── Hero image ──────────────────────────────────────── */}
+        {/* ── Hero image / Editorial banner ─────────────────── */}
         <PlaceImage
           source={resolveImageSource(tour.heroImage?.assetKey)}
           category={tour.category}
           label={tour.name}
-          height={220}
+          isPlaceholder={tour.heroImage?.isPlaceholder}
+          height={230}
         />
 
         <View style={styles.content}>
-          {/* ── Category + title ────────────────────────────── */}
-          <CategoryPill category={tour.category} />
+          {/* ── Category & Subtitle ─────────────────────────── */}
+          <View style={styles.headerMeta}>
+            <CategoryPill category={tour.category} />
+            <Text style={styles.headerCity}>MANGALORE, KARNATAKA</Text>
+          </View>
+
           <Text style={styles.title}>{tour.name}</Text>
 
           {/* ── Stats row ───────────────────────────────────── */}
           <View style={styles.statsRow}>
             <StatBlock
+              icon="📍"
               value={String(tour.stops.length)}
               label={tour.stops.length === 1 ? 'Stop' : 'Stops'}
             />
             <View style={styles.statDivider} />
             <StatBlock
+              icon="⏱"
               value={formatDuration(tour.estimatedDurationMinutes)}
               label="Duration"
             />
+            <View style={styles.statDivider} />
+            <StatBlock
+              icon="👟"
+              value="Self-Paced"
+              label="Pace"
+            />
           </View>
 
-          {/* ── About ───────────────────────────────────────── */}
-          <SectionHeader title="About this tour" spaceAbove={false} />
-          <Text style={styles.description}>{tour.description}</Text>
+          {/* ── About this tour ─────────────────────────────── */}
+          <View style={styles.section}>
+            <Text style={styles.sectionEyebrow}>ABOUT THIS ITINERARY</Text>
+            <Text style={styles.description}>{tour.description}</Text>
+          </View>
 
-          {/* ── Experience ──────────────────────────────────── */}
-          <SectionHeader title="What you'll experience" />
-          <Text style={styles.bodyText}>
-            This tour takes you through {tour.stops.length}{' '}
-            {tour.stops.length === 1 ? 'location' : 'locations'} in Mangalore.
-            At each stop, the story behind the place unfolds — its history, the people
-            who shaped it, and what it means to the city today.
-          </Text>
-          <Text style={[styles.bodyText, styles.bodySpaced]}>
-            The route is self-guided. Walk at your own pace.
-          </Text>
+          {/* ── Itinerary Timeline with Landmark Cards ───────── */}
+          <View style={styles.section}>
+            <Text style={styles.sectionEyebrow}>THE STOPS ({tour.stops.length})</Text>
+            <View style={styles.itinerary}>
+              {stopsData.map((item, idx) => (
+                <View key={item.stop.id} style={styles.stopRow}>
+                  {/* Step indicator */}
+                  <View style={styles.bubbleCol}>
+                    <View style={styles.bubble}>
+                      <Text style={styles.bubbleText}>{idx + 1}</Text>
+                    </View>
+                    {idx < stopsData.length - 1 && <View style={styles.connector} />}
+                  </View>
 
-          {/* ── Itinerary ───────────────────────────────────── */}
-          <SectionHeader title="Itinerary" />
-          <View style={styles.itinerary}>
-            {stopNames.map((name, idx) => (
-              <View key={idx} style={styles.stopRow}>
-                {/* Number bubble */}
-                <View style={styles.bubble}>
-                  <Text style={styles.bubbleText}>{idx + 1}</Text>
+                  {/* Stop detail card */}
+                  <View style={styles.stopCard}>
+                    <PlaceImage
+                      source={resolveImageSource(item.image?.assetKey)}
+                      category={item.category}
+                      label={item.name}
+                      isPlaceholder={item.image?.isPlaceholder}
+                      height={96}
+                      style={styles.stopCardImage}
+                    />
+
+                    <View style={styles.stopCardBody}>
+                      <View style={styles.stopCardMeta}>
+                        <CategoryPill category={item.category} />
+                        <Text style={styles.stopCardDuration}>
+                          ⏱ ~{item.duration} min
+                        </Text>
+                      </View>
+
+                      <Text style={styles.stopName}>{item.name}</Text>
+
+                      {item.shortDesc ? (
+                        <Text style={styles.stopDesc} numberOfLines={2}>
+                          {item.shortDesc}
+                        </Text>
+                      ) : null}
+
+                      {item.admission && (
+                        <Text style={styles.stopAdmissionText}>
+                          {item.admission.isFree ? 'Free public admission' : 'Admission entry'}
+                        </Text>
+                      )}
+                    </View>
+                  </View>
                 </View>
-                {/* Connector line (all but last) */}
-                {idx < stopNames.length - 1 && (
-                  <View style={styles.connector} />
-                )}
-                {/* Stop name */}
-                <Text style={styles.stopName}>{name}</Text>
-              </View>
-            ))}
+              ))}
+            </View>
           </View>
 
-          {/* ── Good to know ────────────────────────────────── */}
-          <SectionHeader title="Good to know" />
-          <View style={styles.tipBox}>
-            {[
-              { icon: '🗺️', text: 'Self-guided · Walk at your own pace' },
-              { icon: '🕐', text: 'Best in the morning or late afternoon' },
-              { icon: '👟', text: 'Comfortable walking shoes recommended' },
-            ].map(({ icon, text }) => (
-              <View key={text} style={styles.tipRow}>
-                <Text style={styles.tipIcon}>{icon}</Text>
-                <Text style={styles.tipText}>{text}</Text>
-              </View>
-            ))}
+          {/* ── Travel Guide Tips ───────────────────────────── */}
+          <View style={styles.tipsBox}>
+            <Text style={styles.tipsHeading}>WALKING NOTES</Text>
+            <View style={styles.tipRow}>
+              <Text style={styles.tipIcon}>📍</Text>
+              <Text style={styles.tipText}>
+                GPS auto-detects each stop as you arrive within range.
+              </Text>
+            </View>
+            <View style={styles.tipRow}>
+              <Text style={styles.tipIcon}>☀️</Text>
+              <Text style={styles.tipText}>
+                Best experienced during early morning or late afternoon light.
+              </Text>
+            </View>
+            <View style={styles.tipRow}>
+              <Text style={styles.tipIcon}>👟</Text>
+              <Text style={styles.tipText}>
+                Comfortable walking footwear recommended for temple courtyards.
+              </Text>
+            </View>
           </View>
 
-          {/* Bottom padding so content clears the sticky footer */}
-          <View style={styles.footerSpacer} />
         </View>
       </ScrollView>
 
-      {/* ── Sticky Start button ─────────────────────────────── */}
+      {/* ── Sticky Start Action ─────────────────────────────── */}
       <View style={styles.stickyFooter}>
         <PrimaryButton
-          label="Start Tour"
+          label="Start Walking Tour →"
           onPress={handleStartTour}
-          accessibilityLabel={`Start ${tour.name}`}
+          accessibilityLabel={`Start walking tour: ${tour.name}`}
         />
       </View>
     </SafeAreaView>
@@ -186,52 +251,74 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  scroll: {
+    paddingBottom: Spacing.xl,
+  },
   content: {
     padding: Spacing.lg,
-    gap: Spacing.sm,
+    gap: Spacing.lg,
+  },
+  headerMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: Spacing.xs,
+  },
+  headerCity: {
+    ...Typography.overline,
+    color: Colors.textTertiary,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.2,
   },
   title: {
     ...Typography.heading,
+    fontSize: 26,
+    lineHeight: 34,
     color: Colors.textPrimary,
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.md,
   },
   statsRow: {
     flexDirection: 'row',
     backgroundColor: Colors.surface,
     borderRadius: Radius.md,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
     borderWidth: 1,
     borderColor: Colors.border,
-    marginBottom: Spacing.md,
+    ...Shadow.sm,
   },
   statDivider: {
     width: 1,
     backgroundColor: Colors.divider,
     marginVertical: Spacing.xs,
   },
+  section: {
+    gap: Spacing.xs,
+  },
+  sectionEyebrow: {
+    ...Typography.overline,
+    color: Colors.accent,
+    marginBottom: 4,
+    letterSpacing: 1.2,
+  },
   description: {
     ...Typography.body,
+    fontSize: 16,
     color: Colors.textPrimary,
-    lineHeight: 26,
+    lineHeight: 25,
   },
-  bodyText: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-    lineHeight: 26,
-  },
-  bodySpaced: {
-    marginTop: Spacing.sm,
-  },
-  // ── Itinerary ──
   itinerary: {
     marginTop: Spacing.xs,
+    gap: Spacing.md,
   },
   stopRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    minHeight: 52,
-    position: 'relative',
+  },
+  bubbleCol: {
+    alignItems: 'center',
+    marginRight: Spacing.md,
+    paddingTop: 4,
   },
   bubble: {
     width: 28,
@@ -240,36 +327,81 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 2,
-    zIndex: 1,
+    zIndex: 2,
   },
   bubbleText: {
     ...Typography.label,
+    fontSize: 12,
+    fontWeight: '700',
     color: Colors.white,
   },
   connector: {
-    position: 'absolute',
-    left: 13,
-    top: 30,
-    bottom: 0,
     width: 2,
-    backgroundColor: Colors.divider,
+    flex: 1,
+    backgroundColor: Colors.border,
+    marginTop: 6,
+    marginBottom: -6,
+  },
+  stopCard: {
+    flex: 1,
+    backgroundColor: Colors.surface,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: 'hidden',
+    ...Shadow.sm,
+    marginBottom: Spacing.xs,
+  },
+  stopCardImage: {
+    borderTopLeftRadius: Radius.md,
+    borderTopRightRadius: Radius.md,
+  },
+  stopCardBody: {
+    padding: Spacing.sm + 2,
+    gap: 4,
+  },
+  stopCardMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
+  stopCardDuration: {
+    ...Typography.caption,
+    fontSize: 11,
+    color: Colors.textTertiary,
   },
   stopName: {
-    ...Typography.body,
+    ...Typography.subheading,
+    fontSize: 16,
+    fontWeight: '700',
     color: Colors.textPrimary,
-    flex: 1,
-    paddingLeft: Spacing.md,
-    paddingTop: 4,
-    paddingBottom: Spacing.md,
   },
-  // ── Tips ──
-  tipBox: {
-    backgroundColor: Colors.accentLight,
+  stopDesc: {
+    ...Typography.bodySmall,
+    color: Colors.textSecondary,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  stopAdmissionText: {
+    ...Typography.caption,
+    color: Colors.accent,
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  tipsBox: {
+    backgroundColor: '#FAF5EE',
     borderRadius: Radius.md,
     padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: '#E8DEC8',
     gap: Spacing.sm,
-    marginTop: Spacing.xs,
+  },
+  tipsHeading: {
+    ...Typography.overline,
+    color: '#8A6836',
+    letterSpacing: 1.2,
   },
   tipRow: {
     flexDirection: 'row',
@@ -277,18 +409,15 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   tipIcon: {
-    fontSize: 16,
-    lineHeight: 22,
+    fontSize: 15,
+    lineHeight: 20,
   },
   tipText: {
     ...Typography.bodySmall,
-    color: Colors.textPrimary,
+    color: '#554734',
     flex: 1,
-    lineHeight: 22,
-  },
-  // ── Footer ──
-  footerSpacer: {
-    height: Spacing.xl,
+    lineHeight: 20,
+    fontSize: 13,
   },
   stickyFooter: {
     backgroundColor: Colors.background,

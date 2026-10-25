@@ -1,6 +1,10 @@
 // src/components/TourItem.tsx
-// A card representing a single tour in the Choose Tour screen.
-// Extracted from ChooseTourScreen for reuse and visual consistency.
+// =============================================================================
+// TourItem — Destination Walking Tour Card
+// =============================================================================
+// Displays a curated tour with place imagery, key itinerary stats,
+// and clear visual hierarchy for the traveler.
+// =============================================================================
 
 import React from 'react';
 import {
@@ -9,8 +13,10 @@ import {
   Text,
   StyleSheet,
 } from 'react-native';
-import { Colors, Radius, Spacing, Typography, CategoryColors } from '../theme';
+import { Colors, Radius, Spacing, Typography, Shadow } from '../theme';
 import { CategoryPill } from './CategoryPill';
+import { PlaceImage } from './PlaceImage';
+import { resolveImageSource } from '../utils/images';
 import { formatDuration } from '../utils/format';
 import type { Tour } from '@shared-types/index';
 
@@ -20,49 +26,67 @@ interface Props {
 }
 
 export function TourItem({ tour, onPress }: Props): React.JSX.Element {
-  const accentColor = CategoryColors[tour.category] ?? CategoryColors['default'];
-
   return (
     <TouchableOpacity
       style={styles.card}
       onPress={onPress}
-      activeOpacity={0.8}
+      activeOpacity={0.82}
       accessibilityRole="button"
       accessibilityLabel={`View details for ${tour.name}`}
     >
-      {/* Top accent bar — category colour gives visual identity */}
-      <View style={[styles.accentBar, { backgroundColor: accentColor }]} />
+      {/* Tour hero visual banner */}
+      <PlaceImage
+        source={resolveImageSource(tour.heroImage?.assetKey)}
+        category={tour.category}
+        label={tour.name}
+        isPlaceholder={tour.heroImage?.isPlaceholder}
+        height={140}
+      />
 
       <View style={styles.body}>
-        {/* Category pill */}
-        <CategoryPill category={tour.category} />
+        {/* Category & Walking indicator */}
+        <View style={styles.tagRow}>
+          <CategoryPill category={tour.category} />
+          <View style={styles.walkingBadge}>
+            <Text style={styles.walkingBadgeText}>WALKING TOUR</Text>
+          </View>
+        </View>
 
         {/* Tour name */}
         <Text style={styles.name}>{tour.name}</Text>
 
         {/* Description */}
-        <Text style={styles.description} numberOfLines={3}>
+        <Text style={styles.description} numberOfLines={2}>
           {tour.description}
         </Text>
 
-        {/* Meta row */}
-        <View style={styles.meta}>
-          <View style={styles.metaItem}>
-            <Text style={styles.metaValue}>{tour.stops.length}</Text>
-            <Text style={styles.metaKey}>
-              {tour.stops.length === 1 ? 'stop' : 'stops'}
+        {/* Itinerary Stats Chips */}
+        <View style={styles.statsRow}>
+          <View style={styles.statChip}>
+            <Text style={styles.statIcon}>📍</Text>
+            <Text style={styles.statText}>
+              {tour.stops.length} {tour.stops.length === 1 ? 'Stop' : 'Stops'}
             </Text>
           </View>
-          <View style={styles.metaDivider} />
-          <View style={styles.metaItem}>
-            <Text style={styles.metaValue}>
+
+          <View style={styles.statChip}>
+            <Text style={styles.statIcon}>⏱</Text>
+            <Text style={styles.statText}>
               {formatDuration(tour.estimatedDurationMinutes)}
             </Text>
-            <Text style={styles.metaKey}>estimated</Text>
+          </View>
+
+          <View style={styles.statChip}>
+            <Text style={styles.statIcon}>👟</Text>
+            <Text style={styles.statText}>Self-Guided</Text>
           </View>
         </View>
 
-        <Text style={styles.cta}>View tour details →</Text>
+        {/* Footer CTA */}
+        <View style={styles.cardFooter}>
+          <Text style={styles.ctaText}>View Tour Itinerary</Text>
+          <Text style={styles.ctaArrow}>→</Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
@@ -75,52 +99,89 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     overflow: 'hidden',
-  },
-  accentBar: {
-    height: 4,
-    width: '100%',
+    ...Shadow.md,
   },
   body: {
     padding: Spacing.lg,
-    gap: Spacing.sm,
+    gap: Spacing.xs,
   },
-  name: {
-    ...Typography.subheading,
-    color: Colors.textPrimary,
-    marginTop: Spacing.xs,
-  },
-  description: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-    lineHeight: 24,
-  },
-  meta: {
+  tagRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: Spacing.xs,
-    gap: Spacing.md,
+    gap: Spacing.sm,
+    marginBottom: Spacing.xs,
   },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 4,
+  walkingBadge: {
+    backgroundColor: Colors.surfaceElevated,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: Radius.full,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  metaValue: {
-    ...Typography.subheading,
-    color: Colors.primary,
+  walkingBadgeText: {
+    ...Typography.overline,
+    fontSize: 9,
+    color: Colors.textSecondary,
+    fontWeight: '700',
+    letterSpacing: 0.8,
   },
-  metaKey: {
+  name: {
+    ...Typography.heading,
+    fontSize: 20,
+    lineHeight: 26,
+    color: Colors.textPrimary,
+  },
+  description: {
     ...Typography.bodySmall,
-    color: Colors.textTertiary,
+    color: Colors.textSecondary,
+    lineHeight: 22,
+    marginTop: 2,
+    marginBottom: Spacing.xs,
   },
-  metaDivider: {
-    width: 1,
-    height: 14,
-    backgroundColor: Colors.border,
+  statsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginVertical: Spacing.xs,
   },
-  cta: {
-    ...Typography.label,
-    color: Colors.primary,
+  statChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: Colors.surfaceElevated,
+    paddingHorizontal: Spacing.sm + 2,
+    paddingVertical: 5,
+    borderRadius: Radius.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  statIcon: {
+    fontSize: 13,
+  },
+  statText: {
+    ...Typography.caption,
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textPrimary,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: Spacing.sm,
     marginTop: Spacing.xs,
+    borderTopWidth: 1,
+    borderTopColor: Colors.divider,
+  },
+  ctaText: {
+    ...Typography.button,
+    fontSize: 14,
+    color: Colors.primary,
+  },
+  ctaArrow: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.primary,
   },
 });

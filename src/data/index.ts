@@ -1,17 +1,20 @@
-﻿// =============================================================================
+// =============================================================================
 // Central data registry — add new cities here as they are onboarded.
 // =============================================================================
 
-import type { City, Attraction, Story, Tour } from '../types';
+import type { City, Destination, Attraction, Story, Tour } from '../types';
 
 import {
   mangaloreCity,
+  mangaloreDestination,
   mangaloreAttractions,
   mangaloreStories,
   mangaloreTours,
 } from './mangalore';
 
 export const cities: City[] = [mangaloreCity];
+
+export const destinations: Destination[] = [mangaloreDestination];
 
 export const attractions: Attraction[] = [...mangaloreAttractions];
 

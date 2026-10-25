@@ -58,6 +58,17 @@ export const Colors = {
   borderStrong:  '#C8BEB4',
   divider:       '#EDE9E2',
 
+  // --- Coastal Karnataka Region Palette -------------------------------------
+  laterite:          '#9E472A',  // rich laterite cliff terracotta
+  lateriteLight:     '#FDF4F0',
+  lateriteDark:      '#752F18',
+  templeGold:        '#B8860B',  // heritage temple brass/gold
+  templeGoldLight:   '#FEF9E7',
+  monsoonGreen:      '#235E44',  // Western Ghats rain foliage
+  monsoonGreenLight: '#EDF7F2',
+  coastalNavy:       '#113B66',  // Arabian Sea deep navy
+  warmWhite:         '#FAF8F4',  // parchment warmth
+
   // --- Utilities ------------------------------------------------------------
   white:         '#FFFFFF',
   black:         '#000000',
@@ -155,6 +166,31 @@ export const Typography = {
     lineHeight: 16,
     letterSpacing: 1.5,
     textTransform: 'uppercase' as const,
+  },
+
+  // === Editorial extensions (M7 traveler reading) ===
+  editorialHeading: {
+    fontSize: 24,
+    fontWeight: '700' as const,
+    lineHeight: 32,
+    letterSpacing: -0.2,
+  },
+  editorialLead: {
+    fontSize: 17,
+    fontWeight: '500' as const,
+    lineHeight: 27,
+  },
+  editorialBody: {
+    fontSize: 16,
+    fontWeight: '400' as const,
+    lineHeight: 27,
+    letterSpacing: 0.1,
+  },
+  quote: {
+    fontSize: 15,
+    fontStyle: 'italic' as const,
+    lineHeight: 24,
+    letterSpacing: 0.2,
   },
 
   // === Legacy aliases (backward compat) ===

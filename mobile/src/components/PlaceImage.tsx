@@ -1,17 +1,22 @@
 // src/components/PlaceImage.tsx
 // =============================================================================
-// PlaceImage — Tour & Attraction Photography Display
+// PlaceImage — Tour & Attraction Photography & Editorial Fallback Display
 // =============================================================================
-// Displays hero photography or temporary placeholder visuals.
+// Displays verified photography when available, or an intentional, polished
+// editorial destination banner when imagery is still pending verification.
 //
 // Architecture:
-//   - When `source` is provided, renders the image with an overlay label.
-//   - When `source` is absent, falls back to a styled category-colored placeholder.
-//   - When `isPlaceholder` is true, displays a subtle, clearly identified
-//     "PLACEHOLDER" badge to avoid misrepresenting temporary assets as real photography.
+//   - If verified photography is available (!isPlaceholder && source && !hasError),
+//     renders the real <Image> with graceful error capture.
+//   - If imagery is pending, missing, or fails to load, renders an intentional,
+//     dignified editorial destination card inspired by Coastal Karnataka's
+//     rich heritage colors.
+//   - Adaptive layout: scales gracefully between compact list thumbnails (height < 120)
+//     and expansive hero banners (height >= 120).
+//   - Never exposes internal placeholder filenames or developer notes to the user.
 // =============================================================================
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Image,
@@ -22,18 +27,33 @@ import {
 } from 'react-native';
 import { CategoryColors, Colors, Typography, Radius, Spacing } from '../theme';
 
-interface Props {
-  /** Real image source or bundled asset. If omitted, a styled placeholder is shown. */
+export interface PlaceImageProps {
+  /** Real image source or bundled asset. */
   source?: ImageSourcePropType;
-  /** Category key — determines fallback placeholder color. */
+  /** Category key — determines fallback editorial color. */
   category?: string;
-  /** Overlay label shown at the bottom of the image/placeholder. */
+  /** Destination or landmark name shown in the overlay. */
   label?: string;
+  /** Height in pixels (default: 220). */
   height?: number;
+  /** Optional container style overrides. */
   style?: ViewStyle;
-  /** True when the image is a temporary placeholder rather than verified photography. */
+  /** True when the asset is an unverified placeholder rather than verified licensed photography. */
   isPlaceholder?: boolean;
+  /** Optional testID for automated verification. */
+  testID?: string;
 }
+
+export const CATEGORY_EDITORIAL_TAGS: Record<string, string> = {
+  history:      'HISTORIC LANDMARK',
+  religious:    'SACRED HERITAGE',
+  nature:       'COASTAL NATURE',
+  food:         'CULINARY HERITAGE',
+  architecture: 'ARCHITECTURAL SITE',
+  coastal:      'COASTAL DESTINATION',
+  culture:      'LIVING CULTURE',
+  default:      'DESTINATION',
+};
 
 export function PlaceImage({
   source,
@@ -42,29 +62,36 @@ export function PlaceImage({
   height = 220,
   style,
   isPlaceholder = false,
-}: Props): React.JSX.Element {
-  const placeholderColor = CategoryColors[category] ?? CategoryColors['default'];
+  testID = 'place-image',
+}: PlaceImageProps): React.JSX.Element {
+  const [hasError, setHasError] = useState(false);
 
-  if (source) {
+  const editorialColor = CategoryColors[category] ?? CategoryColors['default'];
+  const editorialTag = CATEGORY_EDITORIAL_TAGS[category] ?? CATEGORY_EDITORIAL_TAGS['default'];
+  const isCompact = height < 120;
+
+  // If real verified photography is available and has not failed, render the real Image
+  if (source && !isPlaceholder && !hasError) {
     return (
-      <View style={[styles.container, { height }, style]}>
+      <View
+        testID={testID}
+        style={[styles.container, { height }, style]}
+        accessibilityRole="image"
+        accessibilityLabel={label ? `${editorialTag}: ${label}` : 'Tour place image'}
+      >
         <Image
           source={source}
           style={styles.image}
           resizeMode="cover"
+          onError={() => setHasError(true)}
           accessibilityLabel={label ?? 'Tour place image'}
         />
-
-        {/* Clear, subtle badge indicating temporary placeholder asset */}
-        {isPlaceholder && (
-          <View style={styles.placeholderBadge}>
-            <Text style={styles.placeholderBadgeText}>PLACEHOLDER</Text>
-          </View>
-        )}
-
         {label ? (
           <View style={styles.labelOverlay}>
-            <Text style={styles.labelText} numberOfLines={2}>
+            <View style={styles.categoryPillSmall}>
+              <Text style={styles.categoryPillSmallText}>{editorialTag}</Text>
+            </View>
+            <Text style={styles.labelText} numberOfLines={isCompact ? 1 : 2}>
               {label}
             </Text>
           </View>
@@ -73,27 +100,44 @@ export function PlaceImage({
     );
   }
 
-  // Fallback — styled View with subtle inner texture, no external assets required.
+  // Intentional Editorial Fallback — clean, atmospheric, dignified travel-guide visual
   return (
     <View
-      style={[styles.container, { height, backgroundColor: placeholderColor }, style]}
-      accessibilityLabel={label ? `Photo placeholder for ${label}` : 'Photo placeholder'}
+      testID={testID}
+      style={[
+        styles.container,
+        { height, backgroundColor: editorialColor },
+        style,
+      ]}
+      accessibilityRole="image"
+      accessibilityLabel={label ? `${editorialTag}: ${label}` : 'Destination banner'}
     >
-      <View style={styles.placeholderInner} />
-
-      {isPlaceholder && (
-        <View style={styles.placeholderBadge}>
-          <Text style={styles.placeholderBadgeText}>PLACEHOLDER</Text>
-        </View>
+      {/* Decorative architectural framing elements (rendered on medium/large sizes) */}
+      {!isCompact && (
+        <>
+          <View style={styles.decorOuterRing} />
+          <View style={styles.decorInnerRing} />
+        </>
       )}
 
-      {label ? (
-        <View style={styles.labelOverlay}>
-          <Text style={styles.labelText} numberOfLines={2}>
-            {label}
+      <View style={[styles.editorialContent, isCompact && styles.editorialContentCompact]}>
+        <View style={[styles.categoryPillSmall, isCompact && styles.categoryPillCompact]}>
+          <Text style={[styles.categoryPillSmallText, isCompact && styles.categoryPillTextCompact]}>
+            {editorialTag}
           </Text>
         </View>
-      ) : null}
+
+        {label ? (
+          <Text
+            style={[styles.editorialTitle, isCompact && styles.editorialTitleCompact]}
+            numberOfLines={isCompact ? 1 : 2}
+          >
+            {label}
+          </Text>
+        ) : null}
+
+        {!isCompact && <View style={styles.coastalAccentLine} />}
+      </View>
     </View>
   );
 }
@@ -104,47 +148,99 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
     backgroundColor: Colors.surfaceElevated,
+    justifyContent: 'flex-end',
   },
   image: {
     width: '100%',
     height: '100%',
   },
-  placeholderBadge: {
+  decorOuterRing: {
     position: 'absolute',
-    top: Spacing.sm,
-    right: Spacing.sm,
-    backgroundColor: 'rgba(26, 31, 44, 0.72)',
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: Radius.xs,
-    zIndex: 2,
+    top: -40,
+    right: -40,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
   },
-  placeholderBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
+  decorInnerRing: {
+    position: 'absolute',
+    top: -10,
+    right: -10,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  editorialContent: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.lg,
+    paddingTop: Spacing.xl,
+    backgroundColor: 'rgba(15, 23, 42, 0.38)',
+  },
+  editorialContentCompact: {
+    paddingHorizontal: Spacing.md,
+    paddingBottom: Spacing.sm,
+    paddingTop: Spacing.sm,
+    backgroundColor: 'rgba(15, 23, 42, 0.32)',
+  },
+  categoryPillSmall: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(255, 255, 255, 0.24)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: Radius.xs,
+    marginBottom: Spacing.xs,
+  },
+  categoryPillCompact: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginBottom: 2,
+  },
+  categoryPillSmallText: {
+    ...Typography.overline,
+    fontSize: 9,
+    letterSpacing: 1.2,
     color: Colors.white,
+    fontWeight: '700',
+  },
+  categoryPillTextCompact: {
+    fontSize: 8,
     letterSpacing: 0.8,
   },
-  placeholderInner: {
-    position: 'absolute',
-    top: '15%',
-    left: '10%',
-    right: '10%',
-    bottom: '25%',
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderRadius: 4,
+  editorialTitle: {
+    ...Typography.subheading,
+    fontSize: 22,
+    lineHeight: 28,
+    fontWeight: '700',
+    color: Colors.white,
+  },
+  editorialTitleCompact: {
+    fontSize: 14,
+    lineHeight: 18,
+    fontWeight: '700',
+  },
+  coastalAccentLine: {
+    width: 36,
+    height: 2.5,
+    backgroundColor: 'rgba(255, 255, 255, 0.65)',
+    borderRadius: 2,
+    marginTop: Spacing.xs + 2,
   },
   labelOverlay: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(26, 31, 44, 0.55)',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+    backgroundColor: 'rgba(15, 23, 42, 0.55)',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
   },
   labelText: {
     ...Typography.subheading,
     color: Colors.white,
+    fontWeight: '700',
   },
 });

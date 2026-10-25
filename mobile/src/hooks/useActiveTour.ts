@@ -26,6 +26,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import type { Tour, Attraction, Story, TourStop } from '@shared-types/index';
 import { tours, attractions, stories } from '@data/index';
+import { getTourById } from '../engine/planner/registry';
 import type { TourSession } from '../engine/types';
 import { progressFraction } from '../engine/types';
 import { TourLocationController } from '../engine/TourLocationController';
@@ -162,7 +163,10 @@ export function useActiveTour(
   tourId: string,
   options?: ActiveTourOptions,
 ): ActiveTourHookResult {
-  const tour = useMemo(() => tours.find((t) => t.id === tourId) ?? null, [tourId]);
+  const tour = useMemo(
+    () => getTourById(tourId) ?? tours.find((t) => t.id === tourId) ?? null,
+    [tourId],
+  );
 
   // Mode state: defaults to 'device' unless specified
   const [mode, setMode] = useState<'device' | 'simulated'>(options?.mode ?? 'device');

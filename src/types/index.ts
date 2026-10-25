@@ -58,6 +58,30 @@ export interface City {
   coordinates: Coordinates; // approximate city centre
 }
 
+export interface Destination {
+  id: string;          // e.g. "mangalore"
+  name: string;        // e.g. "Mangalore"
+  state: string;       // e.g. "Karnataka"
+  country: string;     // e.g. "India"
+  tagline?: string;
+  description: string;
+  coordinates: Coordinates;
+  attractionIds: string[];
+  tourIds: string[];
+  heroImage?: ImageReference;
+}
+
+// ---------------------------------------------------------------------------
+// Admission / Budget
+// ---------------------------------------------------------------------------
+
+export interface AdmissionFee {
+  isFree: boolean;
+  currency?: string;   // e.g. "INR"
+  amount?: number;     // 0 for free
+  notes?: string;      // e.g. "Free public admission; voluntary donations"
+}
+
 // ---------------------------------------------------------------------------
 // Attraction
 // A physical location the traveller can visit.
@@ -65,7 +89,7 @@ export interface City {
 
 export interface Attraction {
   id: string;                        // e.g. "kadri-temple"
-  cityId: string;                    // foreign key → City.id
+  cityId: string;                    // foreign key → City.id / Destination.id
   name: string;
   coordinates: Coordinates;
   categories: Category[];
@@ -73,6 +97,7 @@ export interface Attraction {
   estimatedVisitDurationMinutes: number;
   sources: string[];                 // URLs or book references for verification
   image: ImageReference;             // Photo or placeholder image reference
+  admission?: AdmissionFee;          // Optional verified admission info
 }
 
 // ---------------------------------------------------------------------------

@@ -22,12 +22,27 @@ export const IMAGE_REGISTRY: Record<string, ImageSourcePropType> = {
   // Tour hero images
   'placeholder-mangalore-heritage-walk': require('../../assets/placeholders/placeholder-mangalore-heritage-walk.png'),
 
-  // Attraction place images
+  // Attraction place images (seed landmarks)
   'placeholder-kadri-manjunatha-temple': require('../../assets/placeholders/placeholder-kadri-manjunatha-temple.png'),
   'placeholder-st-aloysius-chapel': require('../../assets/placeholders/placeholder-st-aloysius-chapel.png'),
   'placeholder-sultan-battery': require('../../assets/placeholders/placeholder-sultan-battery.png'),
   'placeholder-mangaladevi-temple': require('../../assets/placeholders/placeholder-mangaladevi-temple.png'),
   'placeholder-tannirbhavi-beach': require('../../assets/placeholders/placeholder-tannirbhavi-beach.png'),
+
+  // Expanded landmarks (mapped to bundled editorial placeholders pending licensed production photography)
+  'placeholder-kudroli-gokarnanatheshwara-temple': require('../../assets/placeholders/placeholder-kadri-manjunatha-temple.png'),
+  'placeholder-panambur-beach': require('../../assets/placeholders/placeholder-tannirbhavi-beach.png'),
+  'placeholder-someshwara-beach': require('../../assets/placeholders/placeholder-tannirbhavi-beach.png'),
+  'placeholder-ullal-beach': require('../../assets/placeholders/placeholder-tannirbhavi-beach.png'),
+  'placeholder-surathkal-beach-lighthouse': require('../../assets/placeholders/placeholder-sultan-battery.png'),
+  'placeholder-rosario-cathedral': require('../../assets/placeholders/placeholder-st-aloysius-chapel.png'),
+  'placeholder-milagres-church': require('../../assets/placeholders/placeholder-st-aloysius-chapel.png'),
+  'placeholder-kadri-park': require('../../assets/placeholders/placeholder-mangalore-heritage-walk.png'),
+  'placeholder-pilikula-nisargadhama': require('../../assets/placeholders/placeholder-mangalore-heritage-walk.png'),
+  'placeholder-bejai-museum': require('../../assets/placeholders/placeholder-sultan-battery.png'),
+  'placeholder-swami-vivekananda-planetarium': require('../../assets/placeholders/placeholder-mangalore-heritage-walk.png'),
+  'placeholder-sharavu-mahaganapathi-temple': require('../../assets/placeholders/placeholder-mangaladevi-temple.png'),
+  'placeholder-car-street-venkataramana-temple': require('../../assets/placeholders/placeholder-mangaladevi-temple.png'),
 };
 
 /**

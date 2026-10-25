@@ -7,10 +7,13 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Colors } from '../theme';
 import type { RootStackParamList } from './types';
 import { WelcomeScreen } from '../screens/WelcomeScreen';
+import { TripBuilderScreen } from '../screens/TripBuilderScreen';
+import { PersonalizedTourPreviewScreen } from '../screens/PersonalizedTourPreviewScreen';
 import { ChooseInterestScreen } from '../screens/ChooseInterestScreen';
 import { ChooseTourScreen } from '../screens/ChooseTourScreen';
 import { TourPreviewScreen } from '../screens/TourPreviewScreen';
 import { ActiveTourScreen } from '../screens/ActiveTourScreen';
+import { StopStoryScreen } from '../screens/StopStoryScreen';
 import { DevLocationDiagnosticScreen } from '../screens/DevLocationDiagnosticScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -33,6 +36,16 @@ export function RootNavigator(): React.JSX.Element {
         options={{ headerShown: false }}
       />
       <Stack.Screen
+        name="TripBuilder"
+        component={TripBuilderScreen}
+        options={{ title: 'Build My Own Guide' }}
+      />
+      <Stack.Screen
+        name="PersonalizedTourPreview"
+        component={PersonalizedTourPreviewScreen}
+        options={{ title: 'Your Custom Itinerary' }}
+      />
+      <Stack.Screen
         name="ChooseInterest"
         component={ChooseInterestScreen}
         options={{ title: 'Choose Your Interest' }}
@@ -51,6 +64,11 @@ export function RootNavigator(): React.JSX.Element {
         name="ActiveTour"
         component={ActiveTourScreen}
         options={{ title: 'Active Tour' }}
+      />
+      <Stack.Screen
+        name="StopStory"
+        component={StopStoryScreen}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="DevLocationDiagnostic"
