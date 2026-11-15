@@ -70,14 +70,16 @@ export function RootNavigator(): React.JSX.Element {
         component={StopStoryScreen}
         options={{ headerShown: false }}
       />
-      <Stack.Screen
-        name="DevLocationDiagnostic"
-        component={DevLocationDiagnosticScreen}
-        options={{
-          title: 'GPS Diagnostic (Dev)',
-          headerStyle: { backgroundColor: '#4A3B25' },
-        }}
-      />
+      {__DEV__ && (
+        <Stack.Screen
+          name="DevLocationDiagnostic"
+          component={DevLocationDiagnosticScreen}
+          options={{
+            title: 'GPS Diagnostic (Dev)',
+            headerStyle: { backgroundColor: '#4A3B25' },
+          }}
+        />
+      )}
     </Stack.Navigator>
   );
 }
