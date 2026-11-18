@@ -36,4 +36,7 @@ export type RootStackParamList = {
     stopIndex: number;
   };
   DevLocationDiagnostic: undefined;
+  QuickHelp: {
+    source?: 'welcome' | 'active_tour' | 'destination';
+  } | undefined;
 };

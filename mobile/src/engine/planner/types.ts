@@ -80,6 +80,31 @@ export const BUDGET_CONFIGS: Record<BudgetTier, BudgetConfig> = {
 };
 
 /**
+ * Traveler type choices for trip context.
+ * Strictly non-judgmental: does not assume solo travelers are unsafe or groups are safe.
+ */
+export type TravelerType = 'solo' | 'friends';
+
+export interface TravelerTypeConfig {
+  label: string;
+  description: string;
+  icon: string;
+}
+
+export const TRAVELER_TYPE_CONFIGS: Record<TravelerType, TravelerTypeConfig> = {
+  solo: {
+    label: 'Solo traveler',
+    description: 'Exploring on your own at your own pace',
+    icon: '🧭',
+  },
+  friends: {
+    label: 'Traveling with friends',
+    description: 'Exploring together with friends or a group',
+    icon: '👥',
+  },
+};
+
+/**
  * Explicit traveler preferences for personalized trip generation.
  * Contains NO demographic, religious, or sensitive inferences.
  */
@@ -89,6 +114,7 @@ export interface TravelerPreferences {
   budget: BudgetTier;
   selectedInterests: Category[];
   skippedAttractions: string[];
+  travelerType?: TravelerType;
 }
 
 /**

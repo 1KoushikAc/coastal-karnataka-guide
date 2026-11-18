@@ -188,6 +188,22 @@ export function useActiveTour(
   // Resets to false whenever the stop index changes or the tour resets.
   const [hasViewedArrivalContent, setHasViewedArrivalContent] = useState<boolean>(false);
 
+  // Track the last stop index we acknowledged so we can reset hasViewedArrivalContent
+  // even when stop transitions arrive via the session subscription rather than via
+  // the explicit moveToNextStop() callback (e.g. if external state is replaced).
+  const lastAcknowledgedStopIndexRef = useRef<number>(-1);
+
+  // Reset hasViewedArrivalContent whenever the stop index advances or the tour resets.
+  // This ensures the arrival card always appears fresh at each new stop.
+  useEffect(() => {
+    if (!session) return;
+    const currentIndex = session.isComplete ? -1 : session.currentStopIndex;
+    if (lastAcknowledgedStopIndexRef.current !== currentIndex) {
+      lastAcknowledgedStopIndexRef.current = currentIndex;
+      // Only reset if the index actually changed (not on first mount where it starts at 0)
+      setHasViewedArrivalContent(false);
+    }
+  }, [session]);
 
   // Initialize controller and provider for the tour and mode
   useEffect(() => {

@@ -2,6 +2,7 @@
 // The single stack navigator. Add new screens here as milestones are completed.
 
 import React from 'react';
+import { TouchableOpacity, Text } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { Colors } from '../theme';
@@ -15,6 +16,28 @@ import { TourPreviewScreen } from '../screens/TourPreviewScreen';
 import { ActiveTourScreen } from '../screens/ActiveTourScreen';
 import { StopStoryScreen } from '../screens/StopStoryScreen';
 import { DevLocationDiagnosticScreen } from '../screens/DevLocationDiagnosticScreen';
+import { QuickHelpScreen } from '../screens/QuickHelpScreen';
+
+function QuickHelpHeaderButton({ onPress }: { onPress: () => void }): React.JSX.Element {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel="Open Quick Help"
+      style={{
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        backgroundColor: 'rgba(255, 255, 255, 0.16)',
+        borderRadius: 14,
+      }}
+      activeOpacity={0.7}
+    >
+      <Text style={{ color: Colors.white, fontSize: 12, fontWeight: '600' }}>
+        Quick Help
+      </Text>
+    </TouchableOpacity>
+  );
+}
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -38,37 +61,74 @@ export function RootNavigator(): React.JSX.Element {
       <Stack.Screen
         name="TripBuilder"
         component={TripBuilderScreen}
-        options={{ title: 'Build My Own Guide' }}
+        options={({ navigation }) => ({
+          title: 'Build My Own Guide',
+          headerRight: () => (
+            <QuickHelpHeaderButton onPress={() => navigation.navigate('QuickHelp', { source: 'destination' })} />
+          ),
+        })}
       />
       <Stack.Screen
         name="PersonalizedTourPreview"
         component={PersonalizedTourPreviewScreen}
-        options={{ title: 'Your Custom Itinerary' }}
+        options={({ navigation }) => ({
+          title: 'Your Custom Itinerary',
+          headerRight: () => (
+            <QuickHelpHeaderButton onPress={() => navigation.navigate('QuickHelp', { source: 'destination' })} />
+          ),
+        })}
       />
       <Stack.Screen
         name="ChooseInterest"
         component={ChooseInterestScreen}
-        options={{ title: 'Choose Your Interest' }}
+        options={({ navigation }) => ({
+          title: 'Choose Your Interest',
+          headerRight: () => (
+            <QuickHelpHeaderButton onPress={() => navigation.navigate('QuickHelp', { source: 'destination' })} />
+          ),
+        })}
       />
       <Stack.Screen
         name="ChooseTour"
         component={ChooseTourScreen}
-        options={{ title: 'Tours' }}
+        options={({ navigation }) => ({
+          title: 'Tours',
+          headerRight: () => (
+            <QuickHelpHeaderButton onPress={() => navigation.navigate('QuickHelp', { source: 'destination' })} />
+          ),
+        })}
       />
       <Stack.Screen
         name="TourPreview"
         component={TourPreviewScreen}
-        options={{ title: 'Tour Details' }}
+        options={({ navigation }) => ({
+          title: 'Tour Details',
+          headerRight: () => (
+            <QuickHelpHeaderButton onPress={() => navigation.navigate('QuickHelp', { source: 'destination' })} />
+          ),
+        })}
       />
       <Stack.Screen
         name="ActiveTour"
         component={ActiveTourScreen}
-        options={{ title: 'Active Tour' }}
+        options={({ navigation }) => ({
+          title: 'Active Tour',
+          headerRight: () => (
+            <QuickHelpHeaderButton onPress={() => navigation.navigate('QuickHelp', { source: 'active_tour' })} />
+          ),
+        })}
       />
       <Stack.Screen
         name="StopStory"
         component={StopStoryScreen}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="QuickHelp"
+        component={QuickHelpScreen}
+        options={{
+          title: 'Quick Help',
+        }}
       />
       {__DEV__ && (
         <Stack.Screen
@@ -83,4 +143,3 @@ export function RootNavigator(): React.JSX.Element {
     </Stack.Navigator>
   );
 }
-

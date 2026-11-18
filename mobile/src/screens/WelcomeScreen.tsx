@@ -13,11 +13,11 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Colors, Spacing, Typography, Radius, Shadow } from '../theme';
@@ -45,7 +45,7 @@ export function WelcomeScreen({ navigation }: Props): React.JSX.Element {
 
   return (
     <SafeAreaView style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor="#0D2D4F" />
+      <StatusBar barStyle="light-content" />
 
       {/* Decorative ambient backdrop rings */}
       <View style={styles.ambientRingOuter} />
@@ -57,9 +57,22 @@ export function WelcomeScreen({ navigation }: Props): React.JSX.Element {
       >
         {/* ── Top branding section ──────────────────────────────── */}
         <View style={styles.topSection}>
-          <View style={styles.regionBadge}>
-            <Text style={styles.regionDot}>●</Text>
-            <Text style={styles.regionText}>{regionLabel.toUpperCase()}</Text>
+          <View style={styles.topBarRow}>
+            <View style={styles.regionBadge}>
+              <Text style={styles.regionDot}>●</Text>
+              <Text style={styles.regionText}>{regionLabel.toUpperCase()}</Text>
+            </View>
+
+            <TouchableOpacity
+              style={styles.quickHelpPill}
+              onPress={() => navigation.navigate('QuickHelp', { source: 'welcome' })}
+              accessibilityRole="button"
+              accessibilityLabel="Open Quick Help"
+              activeOpacity={0.8}
+            >
+              <Text style={styles.quickHelpPillIcon}>🛡️</Text>
+              <Text style={styles.quickHelpPillText}>Quick Help</Text>
+            </TouchableOpacity>
           </View>
 
           <Text style={styles.title}>
@@ -191,6 +204,25 @@ export function WelcomeScreen({ navigation }: Props): React.JSX.Element {
 
         {/* ── Bottom Section ───────────────────────────────────── */}
         <View style={styles.bottomSection}>
+          <TouchableOpacity
+            style={styles.quickHelpBottomCard}
+            onPress={() => navigation.navigate('QuickHelp', { source: 'welcome' })}
+            accessibilityRole="button"
+            accessibilityLabel="Open Quick Help: polite responses, safer places, trusted contact and emergency help"
+            activeOpacity={0.85}
+          >
+            <View style={styles.quickHelpBottomIconWrap}>
+              <Text style={styles.quickHelpBottomIcon}>🛡️</Text>
+            </View>
+            <View style={styles.quickHelpBottomTextCol}>
+              <Text style={styles.quickHelpBottomTitle}>Need a little help?</Text>
+              <Text style={styles.quickHelpBottomSub}>
+                Polite responses, safe public places, trusted contact & verified emergency numbers.
+              </Text>
+            </View>
+            <Text style={styles.quickHelpBottomArrow}>→</Text>
+          </TouchableOpacity>
+
           <Text style={styles.comfortHint}>
             {destinationName} walking companion · Offline-ready local persistence · No account required
           </Text>
@@ -245,6 +277,32 @@ const styles = StyleSheet.create({
   topSection: {
     paddingTop: Spacing.xs,
   },
+  topBarRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  quickHelpPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.14)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: Radius.full,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.22)',
+  },
+  quickHelpPillIcon: {
+    fontSize: 11,
+  },
+  quickHelpPillText: {
+    ...Typography.caption,
+    color: '#D4E6F8',
+    fontSize: 11,
+    fontWeight: '700',
+  },
   regionBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -254,7 +312,6 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: Radius.full,
     alignSelf: 'flex-start',
-    marginBottom: Spacing.sm,
   },
   regionDot: {
     fontSize: 8,
@@ -459,6 +516,49 @@ const styles = StyleSheet.create({
   bottomSection: {
     gap: Spacing.sm,
     paddingTop: Spacing.xs,
+  },
+  quickHelpBottomCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: Radius.lg,
+    padding: Spacing.md,
+    gap: Spacing.sm + 2,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.16)',
+    marginBottom: Spacing.xs,
+  },
+  quickHelpBottomIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickHelpBottomIcon: {
+    fontSize: 18,
+  },
+  quickHelpBottomTextCol: {
+    flex: 1,
+    gap: 2,
+  },
+  quickHelpBottomTitle: {
+    ...Typography.subheading,
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.white,
+  },
+  quickHelpBottomSub: {
+    ...Typography.caption,
+    fontSize: 11,
+    lineHeight: 16,
+    color: '#A0BED9',
+  },
+  quickHelpBottomArrow: {
+    fontSize: 18,
+    color: '#D4E6F8',
+    fontWeight: '700',
   },
   comfortHint: {
     ...Typography.caption,

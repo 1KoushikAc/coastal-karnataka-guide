@@ -38,7 +38,7 @@
 // =============================================================================
 
 import * as ExpoLocation from 'expo-location';
-import { PermissionStatus } from 'expo';
+import { PermissionStatus } from 'expo-location';
 import type { GeoPoint } from '../distance';
 import type { LocationProvider, LocationListener, Unsubscribe } from './types';
 

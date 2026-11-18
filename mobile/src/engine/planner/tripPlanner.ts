@@ -386,7 +386,7 @@ function createEmptyResult(
 }
 
 function hashPreferences(p: TravelerPreferences): number {
-  const str = `${p.destinationId}:${p.availableTime}:${p.budget}:${p.selectedInterests.sort().join(',')}:${p.skippedAttractions.sort().join(',')}`;
+  const str = `${p.destinationId}:${p.availableTime}:${p.budget}:${p.selectedInterests.sort().join(',')}:${p.skippedAttractions.sort().join(',')}:${p.travelerType ?? ''}`;
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     hash = (hash << 5) - hash + str.charCodeAt(i);

@@ -10,11 +10,11 @@ import React, { useMemo } from 'react';
 import {
   StyleSheet,
   FlatList,
-  SafeAreaView,
   View,
   Text,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Colors, Spacing, Typography, Radius } from '../theme';

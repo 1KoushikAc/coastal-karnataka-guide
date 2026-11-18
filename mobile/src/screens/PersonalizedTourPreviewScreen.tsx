@@ -15,8 +15,8 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Colors, Spacing, Typography, Radius, Shadow } from '../theme';
@@ -79,6 +79,13 @@ export function PersonalizedTourPreviewScreen({ route, navigation }: Props): Rea
             <View style={styles.planBadge}>
               <Text style={styles.planBadgeText}>CUSTOM ITINERARY</Text>
             </View>
+            {plan.preferences.travelerType && (
+              <View style={styles.travelerTypeBadge}>
+                <Text style={styles.travelerTypeBadgeText}>
+                  {plan.preferences.travelerType === 'solo' ? '🧭 SOLO' : '👥 WITH FRIENDS'}
+                </Text>
+              </View>
+            )}
             <Text style={styles.destRegion}>{destination.name}, {destination.country}</Text>
           </View>
 
@@ -229,6 +236,21 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 1,
+  },
+  travelerTypeBadge: {
+    backgroundColor: '#EAF2FB',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: Radius.xs,
+    borderWidth: 1,
+    borderColor: '#C7DDF6',
+  },
+  travelerTypeBadgeText: {
+    ...Typography.overline,
+    color: Colors.primary,
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.8,
   },
   destRegion: {
     ...Typography.caption,

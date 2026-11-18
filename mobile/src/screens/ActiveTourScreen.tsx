@@ -19,9 +19,9 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Colors, Spacing, Typography, Radius, Shadow } from '../theme';
@@ -31,6 +31,7 @@ import { CategoryPill } from '../components/CategoryPill';
 import { PlaceImage } from '../components/PlaceImage';
 import { EmptyState } from '../components/EmptyState';
 import { useActiveTour } from '../hooks/useActiveTour';
+import { attractions } from '@data/index';
 import { resolveImageSource } from '../utils/images';
 import type { RootStackParamList } from '../navigation/types';
 
@@ -119,7 +120,8 @@ export function ActiveTourScreen({ route, navigation }: Props): React.JSX.Elemen
                 <View style={styles.summaryTextCol}>
                   <Text style={styles.summaryStopNumber}>STOP {idx + 1}</Text>
                   <Text style={styles.summaryText}>
-                    {stop.id.replace('stop-', '').replace(/-/g, ' ')}
+                    {attractions.find((a) => a.id === stop.attractionId)?.name ??
+                      stop.id.replace('stop-', '').replace(/-/g, ' ')}
                   </Text>
                 </View>
               </View>
@@ -377,6 +379,26 @@ export function ActiveTourScreen({ route, navigation }: Props): React.JSX.Elemen
               />
             </View>
           )}
+
+          {/* ── Quick Help Banner (Accessible support during walk) ── */}
+          <TouchableOpacity
+            style={styles.quickHelpBanner}
+            onPress={() => navigation.navigate('QuickHelp', { source: 'active_tour' })}
+            accessibilityRole="button"
+            accessibilityLabel="Open Quick Help: polite responses, safe public places, trusted contact, and emergency assistance"
+            activeOpacity={0.85}
+          >
+            <View style={styles.quickHelpIconWrap}>
+              <Text style={styles.quickHelpIcon}>🛡️</Text>
+            </View>
+            <View style={styles.quickHelpTextCol}>
+              <Text style={styles.quickHelpTitle}>Need Quick Help?</Text>
+              <Text style={styles.quickHelpSub}>
+                Polite boundary phrases, safer places, trusted contacts & emergency numbers
+              </Text>
+            </View>
+            <Text style={styles.quickHelpArrow}>→</Text>
+          </TouchableOpacity>
 
           {/* ── Developer Simulator Controls (Collapsible, Dev Only) ─ */}
           {__DEV__ && (
@@ -1005,4 +1027,49 @@ const styles = StyleSheet.create({
   secondarySpacing: {
     marginTop: Spacing.xs,
   },
+  quickHelpBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FAF5EE',
+    borderWidth: 1,
+    borderColor: '#EFE1C4',
+    borderRadius: Radius.lg,
+    padding: Spacing.md,
+    gap: Spacing.sm + 2,
+    marginTop: Spacing.md,
+    ...Shadow.sm,
+  },
+  quickHelpIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F3E8D3',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickHelpIcon: {
+    fontSize: 18,
+  },
+  quickHelpTextCol: {
+    flex: 1,
+    gap: 2,
+  },
+  quickHelpTitle: {
+    ...Typography.subheading,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#8A5D19',
+  },
+  quickHelpSub: {
+    ...Typography.caption,
+    fontSize: 11,
+    lineHeight: 16,
+    color: '#6B4E1B',
+  },
+  quickHelpArrow: {
+    fontSize: 18,
+    color: '#8A5D19',
+    fontWeight: '700',
+  },
 });
+

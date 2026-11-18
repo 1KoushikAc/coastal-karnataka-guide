@@ -13,10 +13,11 @@
 // =============================================================================
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { PersonalizedPlanResult } from './types';
+import type { PersonalizedPlanResult, TravelerType } from './types';
 import type { Tour } from '@shared-types/index';
 
 export const STORAGE_KEY_PERSONALIZED_PLANS = '@coastal_karnataka/personalized_plans_v1';
+export const STORAGE_KEY_TRAVELER_TYPE = '@coastal_karnataka/traveler_type_preference_v1';
 export const STORAGE_SCHEMA_VERSION = 1;
 
 export interface PersistedPlansPayload {
@@ -76,7 +77,10 @@ export function isValidPersonalizedPlan(data: unknown): data is PersonalizedPlan
     typeof candidate.destination.name !== 'string' ||
     !candidate.preferences ||
     typeof candidate.preferences.destinationId !== 'string' ||
-    !Array.isArray(candidate.plannedStops)
+    !Array.isArray(candidate.plannedStops) ||
+    (candidate.preferences.travelerType !== undefined &&
+      candidate.preferences.travelerType !== 'solo' &&
+      candidate.preferences.travelerType !== 'friends')
   ) {
     return false;
   }
@@ -275,3 +279,35 @@ export function clearPlansFromStorage(): Promise<void> {
     }
   });
 }
+
+/**
+ * Loads the user's preferred traveler type ('solo' | 'friends') from storage.
+ */
+export async function loadStoredTravelerType(): Promise<TravelerType | undefined> {
+  try {
+    const val = await AsyncStorage.getItem(STORAGE_KEY_TRAVELER_TYPE);
+    if (val === 'solo' || val === 'friends') {
+      return val;
+    }
+    return undefined;
+  } catch (err) {
+    console.warn('[PlanStorage] Failed to read stored traveler type:', err);
+    return undefined;
+  }
+}
+
+/**
+ * Saves or clears the user's preferred traveler type ('solo' | 'friends' | undefined) in storage.
+ */
+export async function saveStoredTravelerType(type: TravelerType | undefined): Promise<void> {
+  try {
+    if (type) {
+      await AsyncStorage.setItem(STORAGE_KEY_TRAVELER_TYPE, type);
+    } else {
+      await AsyncStorage.removeItem(STORAGE_KEY_TRAVELER_TYPE);
+    }
+  } catch (err) {
+    console.warn('[PlanStorage] Failed to save stored traveler type:', err);
+  }
+}
+

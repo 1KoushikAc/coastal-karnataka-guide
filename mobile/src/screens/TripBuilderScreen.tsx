@@ -21,18 +21,19 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   TouchableOpacity,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { Colors, Spacing, Typography, Radius, Shadow } from '../theme';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { destinations, attractions, stories } from '@data/index';
 import type { Category, Attraction } from '@shared-types/index';
-import type { TimeOption, BudgetTier, TravelerPreferences } from '../engine/planner/types';
-import { TIME_CONSTRAINTS, BUDGET_CONFIGS } from '../engine/planner/types';
+import type { TimeOption, BudgetTier, TravelerPreferences, TravelerType } from '../engine/planner/types';
+import { TIME_CONSTRAINTS, BUDGET_CONFIGS, TRAVELER_TYPE_CONFIGS } from '../engine/planner/types';
+import { saveStoredTravelerType, loadStoredTravelerType } from '../engine/planner/storage';
 import { planPersonalizedTour } from '../engine/planner/tripPlanner';
 import { savePersonalizedPlan } from '../engine/planner/registry';
 import type { RootStackParamList } from '../navigation/types';
@@ -79,8 +80,22 @@ export function TripBuilderScreen({ route, navigation }: Props): React.JSX.Eleme
   // Form State
   const [selectedTime, setSelectedTime] = useState<TimeOption>('3-4_hours');
   const [selectedBudget, setSelectedBudget] = useState<BudgetTier>('any');
+  const [selectedTravelerType, setSelectedTravelerType] = useState<TravelerType | undefined>(undefined);
   const [selectedInterests, setSelectedInterests] = useState<Category[]>(['history']);
   const [skippedIds, setSkippedIds] = useState<Set<string>>(new Set());
+
+  // Load persisted default traveler type if available
+  React.useEffect(() => {
+    let isMounted = true;
+    loadStoredTravelerType().then((stored) => {
+      if (isMounted && stored) {
+        setSelectedTravelerType(stored);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Toggle interest
   const toggleInterest = (cat: Category) => {
@@ -110,7 +125,11 @@ export function TripBuilderScreen({ route, navigation }: Props): React.JSX.Eleme
       budget: selectedBudget,
       selectedInterests,
       skippedAttractions: Array.from(skippedIds),
+      travelerType: selectedTravelerType,
     };
+
+    // Store traveler type preference for future trip building
+    saveStoredTravelerType(selectedTravelerType);
 
     const plan = planPersonalizedTour(preferences, destination, attractions, stories);
 
@@ -211,9 +230,57 @@ export function TripBuilderScreen({ route, navigation }: Props): React.JSX.Eleme
           </View>
         </View>
 
+        {/* ── Section: Traveler Type (Optional) ─────────────── */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>3. HOW ARE YOU TRAVELING? (OPTIONAL)</Text>
+            {selectedTravelerType !== undefined && (
+              <TouchableOpacity
+                onPress={() => setSelectedTravelerType(undefined)}
+                accessibilityRole="button"
+                accessibilityLabel="Clear traveler type selection"
+              >
+                <Text style={styles.clearOptionText}>Clear</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+          <Text style={styles.sectionSubtitle}>
+            Choose whether you are exploring solo or with friends. This is optional and helps us provide relevant travel context.
+          </Text>
+
+          <View style={styles.optionsCol}>
+            {(['solo', 'friends'] as TravelerType[]).map((key) => {
+              const config = TRAVELER_TYPE_CONFIGS[key];
+              const isSelected = selectedTravelerType === key;
+              return (
+                <TouchableOpacity
+                  key={key}
+                  style={[styles.optionCard, isSelected && styles.optionCardSelected]}
+                  onPress={() => setSelectedTravelerType(isSelected ? undefined : key)}
+                  activeOpacity={0.78}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: isSelected }}
+                  accessibilityLabel={`${config.label}: ${config.description}`}
+                >
+                  <View style={styles.radioDot}>
+                    {isSelected && <View style={styles.radioInner} />}
+                  </View>
+                  <Text style={styles.travelerTypeIcon}>{config.icon}</Text>
+                  <View style={styles.optionTextCol}>
+                    <Text style={[styles.optionLabel, isSelected && styles.optionLabelSelected]}>
+                      {config.label}
+                    </Text>
+                    <Text style={styles.optionDesc}>{config.description}</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
         {/* ── Section: Interests ────────────────────────────── */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>3. YOUR INTERESTS</Text>
+          <Text style={styles.sectionTitle}>4. YOUR INTERESTS</Text>
           <Text style={styles.sectionSubtitle}>
             Select themes you enjoy. Leave unselected for general regional highlights.
           </Text>
@@ -243,7 +310,7 @@ export function TripBuilderScreen({ route, navigation }: Props): React.JSX.Eleme
         {/* ── Section: Skip Places ──────────────────────────── */}
         <View style={styles.section}>
           <View style={styles.skipHeader}>
-            <Text style={styles.sectionTitle}>4. PLACES TO SKIP</Text>
+            <Text style={styles.sectionTitle}>5. PLACES TO SKIP</Text>
             {skippedIds.size > 0 && (
               <Text style={styles.skipCountBadge}>
                 {skippedIds.size} {skippedIds.size === 1 ? 'place' : 'places'} excluded
@@ -353,12 +420,27 @@ const styles = StyleSheet.create({
   section: {
     gap: Spacing.xs,
   },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  clearOptionText: {
+    ...Typography.caption,
+    color: Colors.primary,
+    fontWeight: '600',
+    fontSize: 12,
+  },
   sectionTitle: {
     ...Typography.overline,
     color: Colors.primary,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.2,
+  },
+  travelerTypeIcon: {
+    fontSize: 20,
+    marginRight: Spacing.sm + 2,
   },
   sectionSubtitle: {
     ...Typography.bodySmall,

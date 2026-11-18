@@ -25,9 +25,9 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { DeviceLocationProvider, type DeviceLocationStatus } from '../engine/location/DeviceLocationProvider';
 import type { GeoPoint } from '../engine/distance';
 import type { LocationProvider } from '../engine/location/types';
